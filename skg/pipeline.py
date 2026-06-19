@@ -10,7 +10,7 @@ import kuzu
 
 from . import config, fetch, graph, synonyms
 from .extract import extract_claims_batch
-from .normalise import load_synonyms
+from .normalise import load_synonyms, add_ingested_compound, canonical_compound
 from .schema import Claim
 
 
@@ -79,6 +79,10 @@ def run(supplement_names: list[str]) -> None:
     print(f"\nLoaded {total_claims} claims.")
     print("Graph node counts:", graph.counts(conn))
 
+    for name in supplement_names:
+        canonical_name = canonical_compound(name, syns)
+        add_ingested_compound(canonical_name)
+
 
 async def ingest_supplement_async(conn: kuzu.Connection, name: str) -> int:
     """Ingest a single supplement on demand.
@@ -143,6 +147,8 @@ async def ingest_supplement_async(conn: kuzu.Connection, name: str) -> int:
                 loaded_claims += 1
 
     print(f"Ingested {name}: loaded {loaded_claims} claims.")
+    canonical_name = canonical_compound(name, syns)
+    add_ingested_compound(canonical_name)
     return loaded_claims
 
 

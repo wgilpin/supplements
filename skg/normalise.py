@@ -43,3 +43,43 @@ def canonical_entity(name: str | None) -> str | None:
     if name is None or not name.strip():
         return None
     return normalise_str(name)
+
+
+def get_ingested_compounds() -> set[str]:
+    """Retrieve the set of fully ingested compounds from disk, initializing if necessary."""
+    ingested_path = config.DATA_DIR / "ingested_compounds.json"
+    if not ingested_path.exists():
+        initial = {normalise_str(s) for s in config.SUPPLEMENTS + ["curcumin", "niacinamide"] if normalise_str(s)}
+        save_ingested_compounds(initial)
+        return initial
+    try:
+        data = json.loads(ingested_path.read_text())
+        return set(data)
+    except Exception:
+        return {normalise_str(s) for s in config.SUPPLEMENTS + ["curcumin", "niacinamide"] if normalise_str(s)}
+
+
+def save_ingested_compounds(compounds: set[str] | list[str]) -> None:
+    """Save the set of fully ingested compounds to disk."""
+    ingested_path = config.DATA_DIR / "ingested_compounds.json"
+    config.DATA_DIR.mkdir(parents=True, exist_ok=True)
+    ingested_path.write_text(json.dumps(sorted(list(compounds)), indent=2))
+
+
+def add_ingested_compound(name: str) -> None:
+    """Add a compound to the list of fully ingested compounds."""
+    norm = normalise_str(name)
+    if not norm:
+        return
+    compounds = get_ingested_compounds()
+    if norm not in compounds:
+        compounds.add(norm)
+        save_ingested_compounds(compounds)
+
+
+def is_compound_ingested(name: str) -> bool:
+    """Check if a compound name has been fully ingested."""
+    norm = normalise_str(name)
+    if not norm:
+        return False
+    return norm in get_ingested_compounds()

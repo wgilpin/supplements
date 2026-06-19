@@ -27,3 +27,24 @@ def test_canonical_entity_handles_none_and_blank():
     assert canonical_entity(None) is None
     assert canonical_entity("   ") is None
     assert canonical_entity("Alzheimer Disease") == "alzheimer disease"
+
+
+def test_ingested_compounds_tracking(tmp_path):
+    from unittest.mock import patch
+    from skg.normalise import is_compound_ingested, add_ingested_compound, get_ingested_compounds
+
+    with patch("skg.config.DATA_DIR", tmp_path):
+        # Initial state should load from config.SUPPLEMENTS
+        compounds = get_ingested_compounds()
+        assert "taurine" in compounds
+        assert "glycine" in compounds
+        assert "n acetyl cysteine" in compounds
+        assert "curcumin" in compounds
+        assert "niacinamide" in compounds
+        assert "quercetin" not in compounds
+        assert is_compound_ingested("quercetin") is False
+
+        # Add quercetin
+        add_ingested_compound("Quercetin")
+        assert is_compound_ingested("quercetin") is True
+        assert is_compound_ingested("QUERCETIN") is True

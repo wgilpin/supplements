@@ -27,6 +27,7 @@ from pydantic import BaseModel
 
 from .. import config, query, router, summarize
 from ..logging_config import setup_logging
+from ..normalise import is_compound_ingested
 
 logger = logging.getLogger(__name__)
 
@@ -90,11 +91,12 @@ def ask(request: Request, q: Annotated[str, Form()]) -> HTMLResponse:
     candidate_ingestion = None
     if req.query in ("compound", "bridge") and req.entity:
         resolved = query.resolve_entity(conn, req.entity, "compound")
-        if not resolved:
+        if not resolved or not is_compound_ingested(resolved):
             candidate_ingestion = req.entity
     elif req.query == "intersection" and req.entities:
         for ent in req.entities:
-            if not query.resolve_entity(conn, ent, "compound") and \
+            resolved = query.resolve_entity(conn, ent, "compound")
+            if (not resolved or not is_compound_ingested(resolved)) and \
                not query.resolve_entity(conn, ent, "effect") and \
                not query.resolve_entity(conn, ent, "target"):
                 candidate_ingestion = ent
@@ -127,7 +129,7 @@ def ask(request: Request, q: Annotated[str, Form()]) -> HTMLResponse:
 async def ingest(request: Request, supplement: Annotated[str, Form()]) -> HTMLResponse:
     conn = kuzu.Connection(request.app.state.db)
     resolved = query.resolve_entity(conn, supplement, "compound")
-    if not resolved:
+    if not resolved or not is_compound_ingested(resolved):
         logger.info("Starting live ingestion for %r", supplement)
         try:
             from ..pipeline import ingest_supplement_async
