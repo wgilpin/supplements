@@ -32,9 +32,18 @@ def _get_client() -> genai.Client:
 
 PROMPT = """Answer the user's question in 1-3 sentences using ONLY the structured
 claims below, retrieved from a supplement knowledge graph. Ground every statement
-in the claims — do NOT add outside knowledge. Note evidence strength (1-5, higher
-is stronger) where useful, and flag any disagreement between claims. Be concise
-and factual; do not repeat the source quotes verbatim.
+in the claims — do NOT add outside knowledge.
+
+Note evidence strength where useful, but do NOT use raw numerical scores (1-5)
+in the output. Instead, translate these internal scores to human-readable terms:
+- 5: human RCT / human trial
+- 4: human observational study / human study
+- 3: animal model / animal study
+- 2: in vitro / laboratory study
+- 1: review / published opinion
+
+Flag any disagreement between claims. Be concise and factual; do not repeat the
+source quotes verbatim.
 
 QUESTION: {question}
 

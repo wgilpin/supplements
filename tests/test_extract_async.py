@@ -67,3 +67,30 @@ async def test_extract_claims_batch_pacing():
         assert 1.0 in sleep_args
         assert 2.0 in sleep_args
         assert len(sleep_args) == 2
+
+
+@pytest.mark.anyio
+async def test_extract_claims_async_normalization():
+    mock_client = MagicMock()
+    mock_response = MagicMock()
+    
+    # 1. Quote with punctuation/casing differences should be kept
+    mock_response.parsed = [Claim(**_claim_dict(
+        source_quote="taurine a key compound decreases anxiety"
+    ))]
+    mock_client.aio.models.generate_content = AsyncMock(return_value=mock_response)
+    
+    with patch("skg.extract._get_client", return_value=mock_client):
+        res = await extract_claims_async("Taurine, a key compound; decreases anxiety.")
+        assert len(res) == 1
+
+    # 2. Quote with actual word mismatch should be dropped
+    mock_response.parsed = [Claim(**_claim_dict(
+        source_quote="Taurine increases anxiety."
+    ))]
+    mock_client.aio.models.generate_content = AsyncMock(return_value=mock_response)
+    
+    with patch("skg.extract._get_client", return_value=mock_client):
+        res = await extract_claims_async("Taurine decreases anxiety.")
+        assert len(res) == 0
+

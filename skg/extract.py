@@ -3,6 +3,8 @@
 from __future__ import annotations
 
 import asyncio
+import re
+
 from google import genai
 from google.genai.errors import APIError
 
@@ -72,6 +74,15 @@ def _get_client() -> genai.Client:
     return _client
 
 
+def normalize_text(text: str) -> str:
+    """Normalize text by converting to lowercase, replacing punctuation with spaces,
+    and collapsing multiple spaces into a single space.
+    """
+    t = text.lower()
+    t = re.sub(r"[^\w\s]", " ", t)
+    return " ".join(t.split())
+
+
 async def extract_claims_async(abstract: str) -> list[Claim]:
     """Extract claims from one abstract asynchronously, with retry logic on rate limits."""
     client = _get_client()
@@ -89,10 +100,12 @@ async def extract_claims_async(abstract: str) -> list[Claim]:
             parsed = resp.parsed
             claims: list[Claim] = parsed if isinstance(parsed, list) else []
             kept = []
+            norm_abstract = normalize_text(abstract)
             for c in claims:
                 if not is_meaningful(c):
                     continue
-                if c.source_quote.strip() and c.source_quote.strip() not in abstract:
+                quote = c.source_quote.strip()
+                if quote and normalize_text(quote) not in norm_abstract:
                     print(f"  dropped non-verbatim quote: {c.source_quote[:60]!r}...")
                     continue
                 kept.append(c)
