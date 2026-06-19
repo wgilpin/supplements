@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import asyncio
+import difflib
 import re
 
 from google import genai
@@ -75,12 +76,40 @@ def _get_client() -> genai.Client:
 
 
 def normalize_text(text: str) -> str:
-    """Normalize text by converting to lowercase, replacing punctuation with spaces,
-    and collapsing multiple spaces into a single space.
+    """Normalize text by converting to lowercase, replacing Greek letters with names,
+    replacing punctuation with spaces, and collapsing multiple spaces.
     """
     t = text.lower()
+    t = t.replace("γ", "gamma").replace("α", "alpha").replace("β", "beta")
     t = re.sub(r"[^\w\s]", " ", t)
     return " ".join(t.split())
+
+
+def fuzzy_substring_match(sub: str, text: str, threshold: float = 0.85) -> bool:
+    """Check if the normalized sub is a fuzzy substring of the normalized text."""
+    if not sub or not text:
+        return False
+    if sub in text:
+        return True
+
+    # Ensure all words of length >= 3 in the sub are present in the text to prevent word swaps (like increases/decreases)
+    sub_words = [w for w in sub.split() if len(w) >= 3]
+    for w in sub_words:
+        if w not in text:
+            return False
+
+    matcher = difflib.SequenceMatcher(None, sub, text)
+    match = matcher.find_longest_match(0, len(sub), 0, len(text))
+    if match.size == 0:
+        return False
+
+    # Extract the window in text that aligns with the sub
+    start = max(0, match.b - match.a)
+    end = min(len(text), match.b + len(sub) - match.a)
+    candidate = text[start:end]
+
+    ratio = difflib.SequenceMatcher(None, sub, candidate).ratio()
+    return ratio >= threshold
 
 
 async def extract_claims_async(abstract: str) -> list[Claim]:
@@ -105,7 +134,7 @@ async def extract_claims_async(abstract: str) -> list[Claim]:
                 if not is_meaningful(c):
                     continue
                 quote = c.source_quote.strip()
-                if quote and normalize_text(quote) not in norm_abstract:
+                if quote and not fuzzy_substring_match(normalize_text(quote), norm_abstract):
                     print(f"  dropped non-verbatim quote: {c.source_quote[:60]!r}...")
                     continue
                 kept.append(c)

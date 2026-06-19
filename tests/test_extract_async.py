@@ -94,3 +94,23 @@ async def test_extract_claims_async_normalization():
         res = await extract_claims_async("Taurine decreases anxiety.")
         assert len(res) == 0
 
+    # 3. Quote with Greek letter mapped to name should be kept
+    mock_response.parsed = [Claim(**_claim_dict(
+        source_quote="Treatment with low-dose gamma-irradiation."
+    ))]
+    mock_client.aio.models.generate_content = AsyncMock(return_value=mock_response)
+    
+    with patch("skg.extract._get_client", return_value=mock_client):
+        res = await extract_claims_async("Treatment with low-dose γ-irradiation.")
+        assert len(res) == 1
+
+    # 4. Quote with minor symbol mismatches and dropped letters (fuzzy match) should be kept
+    mock_response.parsed = [Claim(**_claim_dict(
+        source_quote="Treatment with quercetin (DEN † QR) or low-dose -irradiation."
+    ))]
+    mock_client.aio.models.generate_content = AsyncMock(return_value=mock_response)
+    
+    with patch("skg.extract._get_client", return_value=mock_client):
+        res = await extract_claims_async("Treatment with quercetin (DEN + QR) or low-dose γ-irradiation.")
+        assert len(res) == 1
+
