@@ -16,6 +16,7 @@ wheels/
 data/kg.kuzu*
 data/abstracts/
 data/claims/
+data/logs/
 
 # macOS
 .DS_Store

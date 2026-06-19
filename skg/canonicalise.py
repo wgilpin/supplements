@@ -81,7 +81,7 @@ def _get_client() -> genai.Client:
 
 
 def distinct_names(conn: kuzu.Connection, label: str) -> list[str]:
-    df = conn.execute(f"MATCH (n:{label}) RETURN n.name AS name ORDER BY name").get_as_df()
+    df = graph.query_df(conn, f"MATCH (n:{label}) RETURN n.name AS name ORDER BY name")
     return df["name"].tolist()
 
 
@@ -95,7 +95,8 @@ def propose_label(conn: kuzu.Connection, label: str) -> LabelProposal:
         config={"response_mime_type": "application/json",
                 "response_schema": LabelProposal},
     )
-    return resp.parsed or LabelProposal(clusters=[], flags=[])
+    parsed = resp.parsed
+    return parsed if isinstance(parsed, LabelProposal) else LabelProposal(clusters=[], flags=[])
 
 
 def propose(conn: kuzu.Connection | None = None) -> dict:
@@ -113,9 +114,9 @@ def propose(conn: kuzu.Connection | None = None) -> dict:
 
 
 def _node_exists(conn: kuzu.Connection, label: str, name: str) -> bool:
-    df = conn.execute(
-        f"MATCH (n:{label} {{name: $n}}) RETURN count(n) AS n", {"n": name}
-    ).get_as_df()
+    df = graph.query_df(
+        conn, f"MATCH (n:{label} {{name: $n}}) RETURN count(n) AS n", {"n": name}
+    )
     return int(df["n"][0]) > 0
 
 

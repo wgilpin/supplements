@@ -19,6 +19,13 @@ target and/or a downstream effect. Rules:
   At least one of target/effect must be present.
 - Use CANONICAL FULL NAMES for target and effect — expand all abbreviations
   (e.g. "AD" -> "Alzheimer disease", "GABA-A" -> "gamma-aminobutyric acid type A receptor").
+- DISEASE/CONDITION CAPTURE: if the abstract studies a disease or condition that the
+  compound is presented as affecting, emit that disease as an `effect` with its
+  canonical full name — even when it is named only by an abbreviation (e.g. "AD" ->
+  "Alzheimer disease") or only implied by a disease model (e.g. "5XFAD" or "APP/PS1"
+  mice -> "Alzheimer disease"; "MPTP model" -> "Parkinson disease"). Do not drop the
+  disease just because a sentence focuses on a downstream mechanism — emit a separate
+  claim linking the compound to the disease effect (same source_quote, metadata).
 - Each target and each effect must name a SINGLE biological entity. NEVER
   concatenate several entity names into one value (no "A / B / C", no
   "A-B pathway" built from distinct proteins, no "A and B complex" unless that
@@ -79,7 +86,8 @@ async def extract_claims_async(abstract: str) -> list[Claim]:
                     "response_schema": list[Claim],
                 },
             )
-            claims: list[Claim] = resp.parsed or []
+            parsed = resp.parsed
+            claims: list[Claim] = parsed if isinstance(parsed, list) else []
             kept = []
             for c in claims:
                 if not is_meaningful(c):
@@ -104,6 +112,7 @@ async def extract_claims_async(abstract: str) -> list[Claim]:
                 await asyncio.sleep(sleep_time)
                 continue
             raise
+    raise RuntimeError("unreachable: extraction retry loop exhausted without return")
 
 
 async def extract_claims_batch(records: list[dict]) -> dict[str, list[Claim]]:

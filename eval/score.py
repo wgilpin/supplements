@@ -74,7 +74,7 @@ def write_csv(rows: list[dict]) -> None:
 
 
 def jsonl_to_csv() -> None:
-    rows = [json.loads(l) for l in JSONL_PATH.read_text().splitlines() if l.strip()]
+    rows = [json.loads(line) for line in JSONL_PATH.read_text().splitlines() if line.strip()]
     write_csv(rows)
     print(f"Wrote {len(rows)} rows -> {CSV_PATH}")
 
@@ -95,7 +95,7 @@ def _load_labelled() -> list[dict]:
     if CSV_PATH.exists():
         with CSV_PATH.open(newline="") as f:
             return list(csv.DictReader(f))
-    return [json.loads(l) for l in JSONL_PATH.read_text().splitlines() if l.strip()]
+    return [json.loads(line) for line in JSONL_PATH.read_text().splitlines() if line.strip()]
 
 
 def score() -> None:

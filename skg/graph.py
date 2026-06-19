@@ -3,8 +3,12 @@
 from __future__ import annotations
 
 from pathlib import Path
+from typing import TYPE_CHECKING
 
 import kuzu
+
+if TYPE_CHECKING:
+    import pandas as pd
 
 from . import config
 from .normalise import canonical_compound, canonical_entity
@@ -34,6 +38,19 @@ DDL = [
 def connect(path: Path | None = None) -> kuzu.Connection:
     db = kuzu.Database(str(path or config.GRAPH_PATH))
     return kuzu.Connection(db)
+
+
+def query_df(conn: kuzu.Connection, statement: str,
+             params: dict[str, object] | None = None) -> "pd.DataFrame":
+    """Run a read query and return its result as a DataFrame.
+
+    Wraps Kùzu's `execute` (typed as QueryResult | list[QueryResult]) so callers
+    get a single DataFrame without each site repeating the union narrowing.
+    """
+    result = conn.execute(statement, params or {})
+    if isinstance(result, list):
+        result = result[0]
+    return result.get_as_df()
 
 
 def init_schema(conn: kuzu.Connection) -> None:
@@ -99,6 +116,6 @@ def load_claim(conn: kuzu.Connection, claim: Claim, pmid: str,
 def counts(conn: kuzu.Connection) -> dict[str, int]:
     out = {}
     for label in ("Compound", "Target", "Effect", "Claim"):
-        df = conn.execute(f"MATCH (n:{label}) RETURN count(n) AS n").get_as_df()
+        df = query_df(conn, f"MATCH (n:{label}) RETURN count(n) AS n")
         out[label] = int(df["n"][0])
     return out

@@ -1,5 +1,4 @@
 import pytest
-import asyncio
 from unittest.mock import AsyncMock, MagicMock, patch
 from google.genai.errors import APIError
 from skg.extract import extract_claims_async, extract_claims_batch

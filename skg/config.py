@@ -15,6 +15,8 @@ ABSTRACTS_DIR = DATA_DIR / "abstracts"
 CLAIMS_DIR = DATA_DIR / "claims"
 SYNONYMS_PATH = DATA_DIR / "synonyms.json"
 GRAPH_PATH = DATA_DIR / "kg.kuzu"
+LOG_DIR = DATA_DIR / "logs"
+LOG_PATH = LOG_DIR / "skg.log"
 
 # Starter supplements (M1). The pipeline has no count cap — add names here.
 SUPPLEMENTS = ["taurine", "glycine", "N-acetyl cysteine"]

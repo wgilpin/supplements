@@ -1,0 +1,43 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Supplement Knowledge Graph</title>
+  <link rel="stylesheet" href="/static/style.css">
+  <script src="https://unpkg.com/htmx.org@2.0.4"></script>
+</head>
+<body>
+  <header>
+    <h1>Supplement Knowledge Graph</h1>
+    <p class="sub">Ask what a compound does, what affects an outcome, what acts on a
+      target, or which compounds share a target. Every answer shows the verbatim
+      source quote — the only QA you need is reading.</p>
+  </header>
+
+  <main>
+    <div id="transcript" class="transcript">
+      <div class="msg bot">
+        Ask me something — for example
+        <em>"what does taurine do?"</em>,
+        <em>"what affects anxiety with strong evidence?"</em>, or
+        <em>"which compounds share a target with NAC?"</em>
+      </div>
+    </div>
+
+    <div id="pending" class="htmx-indicator">
+      <span class="dots"><span></span><span></span><span></span></span>
+      searching the graph…
+    </div>
+
+    <form id="ask-form" hx-post="/ask" hx-target="#transcript" hx-swap="beforeend"
+          hx-disabled-elt="#send" hx-indicator="#pending">
+      <input type="text" name="q" id="q" placeholder="Ask the graph…"
+             autocomplete="off" required>
+      <button type="submit" id="send">Ask</button>
+    </form>
+  </main>
+
+  <script src="/static/app.js"></script>
+</body>
+</html>
