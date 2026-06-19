@@ -7,7 +7,7 @@ from typing import Literal
 
 from pydantic import BaseModel
 
-Direction = Literal["increases", "decreases", "none", "mixed"]
+Direction = Literal["increases", "decreases", "none", "mixed", "modulates"]
 
 
 class Claim(BaseModel):

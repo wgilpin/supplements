@@ -88,7 +88,7 @@ CREATE NODE TABLE Effect (
 // --- Claim node (the reified assertion) ---
 CREATE NODE TABLE Claim (
     id STRING,              // hash of (pmid + compound + target + effect + direction)
-    direction STRING,       // 'increases' | 'decreases' | 'none' | 'mixed'
+    direction STRING,       // 'increases' | 'decreases' | 'none' | 'mixed' | 'modulates'
     dose_text STRING,       // raw, human-readable; "" if none stated
     cohort_text STRING,     // raw; e.g. "adults 60+, healthy"; "" if none
     model STRING,           // 'human RCT' | 'mouse' | 'in vitro' | 'review' | ...
@@ -158,7 +158,8 @@ Feed one abstract at a time; get back a JSON array of claims. Key prompt require
 - Each claim object: `compound`, `target` (or null), `effect` (or null), `direction`, `dose_text`, `cohort_text`, `model`, `source_quote`.
 - **Canonical full names** for target/effect; no abbreviations (per §5.2).
 - **`source_quote` must be a verbatim sentence from the abstract** — this is non-negotiable; it's the only available QA check.
-- `direction` from the fixed set: `increases | decreases | none | mixed`. **`none` (no significant effect) is a real, valuable claim** — capture it, don't discard it. It's how Milestone 2 answers "is there evidence *against*".
+- `direction` from the fixed set: `increases | decreases | none | mixed | modulates`. **`none` (no significant effect) is a real, valuable claim** — capture it, don't discard it. It's how Milestone 2 answers "is there evidence *against*". **`modulates`** = the compound affects the target/effect but the sentence states no clear direction (added after the M1 precision check showed `mixed` was being overloaded for directionless "influences" sentences).
+- **Causation, not association.** Only assert `increases`/`decreases` when the sentence presents the *compound* as the agent causing the change. Merely observational/associative sentences ("mice exhibited elevated IL-6"; "pathway X activated as a response to disease Y") must not be turned into a signed causal claim — use `modulates` or skip. (Added after the precision check found a reversed-causality error and association-as-causation over-claims.)
 - If the abstract states no dose or cohort, emit `""` — don't invent.
 
 > Validation loop you *can* run without bio knowledge: for a sample of extracted claims, check the structured `direction`/`compound`/`effect` is consistent with `source_quote`. Mismatches = extraction errors you can catch by reading.
@@ -196,13 +197,22 @@ Keep it this crude for M1. It exists so M2 can filter ("strong evidence only") a
 - **M2 — Query application.** Ask the graph: what affects X, via what target, with what evidence, in what cohort. Includes at least one **multi-hop** query (`compound → shared target → effect` across compounds) — the query that earns the word "graph". Dose/cohort shown as raw text for the human to read.
 - **M3 — On-demand ingestion.** Name a supplement not yet in the graph → run the M1 pipeline live. Mostly M1 plumbing behind a trigger. New claims flagged unreviewed/lower-trust (runtime extraction errors land in front of the user with no review step — matters in a supplements context).
 - **M4 — Gap-driven retrieval.** The graph detects what it *doesn't* know and goes looking to fill it. The genuinely novel milestone. **Note:** its full version needs the graph to represent *typed absence* — distinguishing "no claims in this cohort" from "nobody looked" from "not yet ingested". At 20 supplements this is answerable by inspection; if M4 gets ambitious, that's the point to reconsider whether cohort should become a node (§4.3) and whether pathway-level structure (deliberately dropped with ontologies) is needed.
+- **M5 — Descriptive dosing (full-text enrichment).** *Goal: surface the doses studies actually used for a `compound → effect`, with evidence grade, cohort, and N — so the human can judge. **Descriptive, not prescriptive**: the system shows studied doses, it does not recommend a dose to ingest.* This is the first milestone the **abstract is not enough** for (dose lives in Methods, not the abstract — confirmed by the M1 precision check). Requires, additively on M1's claims map:
+  1. **Full-text ingestion** — PMC open-access subset (free; no paywall-busting), fall back to abstract. New fetch path alongside `fetch.py`.
+  2. **Structured dose extraction** — amount / unit / frequency / duration / route, pulled from Methods. **Un-defers** the raw-text dose decision (§4.3, §10).
+  3. **Dose normalisation** — the genuinely hard part: comparable units, **salt forms / elemental content** (taurine ≠ magnesium taurate), per-kg vs absolute, bioavailability. LLM + reference data.
+  4. **Aggregation** — across claims, weight by evidence grade and N; summarise the *studied* dose range.
+  5. **Safety framing** — "doses studied," not "dose to take"; disclaimers; conservative gating.
+
+  The reified-claim model makes this additive: a structured dose hangs off each `Claim` (via `source_pmid`) without re-architecting. Naturally pairs with M4 (full-text fetch is a gap-fill action). Prescriptive dosing (synthesising a number to ingest) is explicitly **out of scope** unless revisited with a dedicated safety design.
 
 ---
 
 ## 10. Accepted trade-offs (so they don't surprise you — or a reviewer — later)
 
 - **No ontologies** → no hierarchy to traverse, so no *pathway-level* mechanistic inference ("is GABA-A in a pathway that also includes target X?"). Direct shared-target inference still works and is the more legible result anyway. Knowingly traded pathway reasoning for comprehensibility.
-- **Raw-text dose/cohort** → can't compute across regimes yet. Added back later if wanted; costs nothing now.
+- **Raw-text dose/cohort** → can't compute across regimes yet. Added back later if wanted; costs nothing now. *(Reactivated by M5 — descriptive dosing needs structured dose.)*
+- **Abstract-only extraction** → a *claims map* is well-served (the abstract is the authors' own summary, and it makes the verbatim-quote QA work), but it imposes a **causal / dose / strength ceiling**: causation-vs-association is compressed away (source of the M1 reversed-causality and association errors), and dose / N / effect-size / buried null results live in full text. Fine for M1's stated goal; **full-text enrichment deferred to M5**. The reified-claim model lets full text be added per-claim later, not as a global rewrite.
 - **Qualifiers as properties, not nodes** → the elegant graph-native "what's missing" query is deferred; a `GROUP BY` covers it at this scale.
 - **Human-in-the-loop dedup** → fine at 20 supplements, would not survive BenchSci volume. The design is correct *for this size*, chosen deliberately.
 - **LLM extraction, unvalidatable by domain knowledge** → mitigated by the mandatory source quote as a reading-comprehension QA check, not eliminated.

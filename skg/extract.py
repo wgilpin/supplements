@@ -28,8 +28,19 @@ target and/or a downstream effect. Rules:
   one for "mammalian target of rapamycin"), each with the same source_quote,
   direction, and metadata. If only one component is truly the point of the
   sentence, emit just that single most-specific entity.
-- direction: exactly one of "increases", "decreases", "none", "mixed".
-  "none" = explicitly no significant effect. This is a VALID, valuable claim — keep it.
+- direction: exactly one of "increases", "decreases", "none", "mixed", "modulates".
+  - "increases" / "decreases": the compound raises / lowers the target or effect.
+  - "none" = explicitly no significant effect. This is a VALID, valuable claim — keep it.
+  - "mixed" = genuinely bidirectional or dose-dependent (e.g. hormesis).
+  - "modulates" = the compound affects/influences the target or effect but the
+    sentence states NO clear direction (e.g. "taurine influences NF-κB"). Use this
+    instead of guessing a direction.
+- CAUSATION: only assert "increases"/"decreases" when the sentence presents the
+  COMPOUND as the agent causing the change. If the sentence is merely associative
+  or observational (e.g. "mice exhibited elevated IL-6", "pathway X displayed
+  activation, indicating a response to disease Y"), do NOT infer a causal
+  direction or its sign — use "modulates", or skip the claim if no relationship
+  is actually asserted. Do not reverse cause and effect.
 - dose_text: the dose/regimen sentence verbatim if stated, else "".
 - cohort_text: the population/model description if stated, else "".
 - model: study type, e.g. "human RCT", "human observational", "mouse", "rat",

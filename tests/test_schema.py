@@ -21,6 +21,12 @@ def test_claim_id_distinguishes_direction():
     assert inc != dec
 
 
+def test_modulates_is_a_valid_direction():
+    # Added after the precision check (directionless "influences" sentences).
+    c = _claim(direction="modulates")
+    assert c.direction == "modulates"
+
+
 def test_is_meaningful_requires_target_or_effect():
     assert is_meaningful(_claim(target="gaba", effect=None))
     assert is_meaningful(_claim(target=None, effect="anxiety"))
