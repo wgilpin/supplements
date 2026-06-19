@@ -2,7 +2,9 @@
 
 from __future__ import annotations
 
+import asyncio
 from google import genai
+from google.genai.errors import APIError
 
 from . import config
 from .schema import Claim, is_meaningful
@@ -84,3 +86,71 @@ def extract_claims(abstract: str) -> list[Claim]:
             continue
         kept.append(c)
     return kept
+
+
+async def extract_claims_async(abstract: str) -> list[Claim]:
+    """Extract claims from one abstract asynchronously, with retry logic on rate limits."""
+    client = _get_client()
+    max_retries = 3
+    for attempt in range(max_retries):
+        try:
+            resp = await client.aio.models.generate_content(
+                model=config.GEMINI_MODEL,
+                contents=PROMPT.format(abstract=abstract),
+                config={
+                    "response_mime_type": "application/json",
+                    "response_schema": list[Claim],
+                },
+            )
+            claims: list[Claim] = resp.parsed or []
+            kept = []
+            for c in claims:
+                if not is_meaningful(c):
+                    continue
+                if c.source_quote.strip() and c.source_quote.strip() not in abstract:
+                    print(f"  dropped non-verbatim quote: {c.source_quote[:60]!r}...")
+                    continue
+                kept.append(c)
+            return kept
+        except APIError as e:
+            is_transient = e.code in (429, 500, 503, 504) or "limit" in str(e).lower() or "exhausted" in str(e).lower()
+            if is_transient and attempt < max_retries - 1:
+                sleep_time = (2 ** attempt) + 1
+                print(f"  Transient API error ({e}). Retrying in {sleep_time}s...")
+                await asyncio.sleep(sleep_time)
+                continue
+            raise
+        except Exception as e:
+            if attempt < max_retries - 1:
+                sleep_time = (2 ** attempt) + 1
+                print(f"  Unexpected error ({e}). Retrying in {sleep_time}s...")
+                await asyncio.sleep(sleep_time)
+                continue
+            raise
+
+
+async def extract_claims_batch(records: list[dict]) -> dict[str, list[Claim]]:
+    """Extract claims for a list of abstracts in parallel, pacing requests with a 1.0s stagger delay."""
+    results_map: dict[str, list[Claim]] = {}
+
+    async def worker(index: int, rec: dict):
+        pmid = rec["pmid"]
+        abstract = rec["abstract"]
+
+        # Stagger the start time of each request by 1.0s * index
+        delay = index * 1.0
+        if delay > 0:
+            await asyncio.sleep(delay)
+
+        print(f"  Starting extraction for PMID {pmid} (stagger delay: {delay:.1f}s)...")
+        try:
+            claims = await extract_claims_async(abstract)
+            results_map[pmid] = claims
+            print(f"  Finished extraction for PMID {pmid}: found {len(claims)} claims")
+        except Exception as e:
+            print(f"  Error extracting PMID {pmid}: {e}")
+            results_map[pmid] = []
+
+    tasks = [worker(i, rec) for i, rec in enumerate(records)]
+    await asyncio.gather(*tasks)
+    return results_map
