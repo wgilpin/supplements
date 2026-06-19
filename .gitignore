@@ -1,0 +1,20 @@
+# Python-generated files
+__pycache__/
+*.py[oc]
+build/
+dist/
+wheels/
+*.egg-info
+
+# Virtual environments
+.venv
+
+# Secrets
+.env
+
+# Graph DB + cached data
+data/kg.kuzu*
+data/abstracts/
+
+# macOS
+.DS_Store

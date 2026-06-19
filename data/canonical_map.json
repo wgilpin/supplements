@@ -1,0 +1,454 @@
+{
+  "Compound": {
+    "clusters": [
+      {
+        "canonical": "ascorbate",
+        "members": [
+          "ascorbate",
+          "ascorate"
+        ]
+      }
+    ],
+    "flags": [
+      {
+        "name": "aminemodified polystyrene microparticles",
+        "reason": "Material formulation/microparticle rather than a single chemical compound"
+      },
+      {
+        "name": "antioxidants",
+        "reason": "Functional class of compounds rather than a single chemical entity"
+      },
+      {
+        "name": "baicalin and valproic acid",
+        "reason": "Mixture of two distinct chemical compounds"
+      },
+      {
+        "name": "branchedchain amino acids",
+        "reason": "Class of amino acids rather than a single compound"
+      },
+      {
+        "name": "citrus depressa peel ethanolic extract",
+        "reason": "Complex natural extract containing multiple chemical components"
+      },
+      {
+        "name": "cocaine and ethanol",
+        "reason": "Mixture of two distinct chemical compounds"
+      },
+      {
+        "name": "corticosteroids",
+        "reason": "Class of steroid hormones rather than a single chemical entity"
+      },
+      {
+        "name": "creatine plus phosphocreatine",
+        "reason": "Mixture of two distinct compounds"
+      },
+      {
+        "name": "cyclodextrin derivatives bearing multicharged side chains",
+        "reason": "Broad group of chemical derivatives rather than a specific compound"
+      },
+      {
+        "name": "deep eutectic solvents",
+        "reason": "Class of multicomponent solvent mixtures"
+      },
+      {
+        "name": "digestible sulphur amino acids to digestible lysine ratio",
+        "reason": "Nutritional ratio, not a chemical compound"
+      },
+      {
+        "name": "fertilix",
+        "reason": "Brand name dietary supplement formulation, not a single compound"
+      },
+      {
+        "name": "gammaglutamyl dipeptides",
+        "reason": "Class of dipeptides rather than a single chemical compound"
+      },
+      {
+        "name": "glucagonlike peptide1 receptor agonists",
+        "reason": "Pharmacological class of agents rather than a specific chemical compound"
+      },
+      {
+        "name": "hibiscus tea",
+        "reason": "Complex beverage/natural extract containing multiple constituents"
+      },
+      {
+        "name": "lactate plus macromolecule 14 plus lipid 13",
+        "reason": "Spectroscopic mixture or analytical signal, not a single chemical entity"
+      },
+      {
+        "name": "lead compound",
+        "reason": "General drug discovery status term rather than a specific compound"
+      },
+      {
+        "name": "mxenebased schottky junction nanocomposite",
+        "reason": "Nanostructured material/composite rather than a chemical compound"
+      },
+      {
+        "name": "nitrates",
+        "reason": "Chemical class of ions/salts rather than a single specific compound"
+      },
+      {
+        "name": "organic dust extract",
+        "reason": "Complex environmental extract containing many unknown substances"
+      },
+      {
+        "name": "rapid alkalinization factors",
+        "reason": "Family of polypeptide plant hormones, not a small molecule compound"
+      },
+      {
+        "name": "reactive oxygen species",
+        "reason": "Group of highly reactive oxygen-containing molecules and ions rather than a single compound"
+      },
+      {
+        "name": "taurinebased active pharmaceutical ingredient ionic liquid ctil",
+        "reason": "Ionic liquid formulation/class rather than a single specific compound"
+      },
+      {
+        "name": "tryptophankynurenine pathway metabolites",
+        "reason": "Group of metabolic pathway intermediates rather than a single compound"
+      },
+      {
+        "name": "tryptophanserotonin pathway metabolites",
+        "reason": "Group of metabolic pathway intermediates rather than a single compound"
+      }
+    ]
+  },
+  "Target": {
+    "clusters": [
+      {
+        "canonical": "Adenosine A2A receptor",
+        "members": [
+          "adenosine a2a receptor"
+        ]
+      },
+      {
+        "canonical": "B-cell lymphoma 2",
+        "members": [
+          "bcell lymphoma 2"
+        ]
+      },
+      {
+        "canonical": "BCL2-associated X protein",
+        "members": [
+          "bcl2associated x protein"
+        ]
+      },
+      {
+        "canonical": "Cannabinoid receptor type 1",
+        "members": [
+          "cannabinoid receptor type 1"
+        ]
+      },
+      {
+        "canonical": "Cortical serine protease A",
+        "members": [
+          "cortical serine protease a"
+        ]
+      },
+      {
+        "canonical": "Cortical serine protease A-C complex",
+        "members": [
+          "cortical serine protease acortical serine protease c complex",
+          "cortical serine protease acortical serine protease ctaurocholate complex"
+        ]
+      },
+      {
+        "canonical": "G protein subunit alpha q",
+        "members": [
+          "g protein subunit alpha q"
+        ]
+      },
+      {
+        "canonical": "Glutathione peroxidase",
+        "members": [
+          "glutathione peroxidase"
+        ]
+      },
+      {
+        "canonical": "Glycine receptor subunit alpha 2",
+        "members": [
+          "glycine receptor subunit alpha 2"
+        ]
+      },
+      {
+        "canonical": "Insulin receptor substrate 1",
+        "members": [
+          "insulin receptor substrate 1"
+        ]
+      },
+      {
+        "canonical": "Integrin alpha-V beta-3",
+        "members": [
+          "integrin alphav beta3"
+        ]
+      },
+      {
+        "canonical": "Kelch-like ECH-associated protein 1",
+        "members": [
+          "kelchlike echassociated protein1"
+        ]
+      },
+      {
+        "canonical": "Lysozyme",
+        "members": [
+          "lysozyme"
+        ]
+      },
+      {
+        "canonical": "Monoacylglycerol lipase",
+        "members": [
+          "monoacylglycerol lipase"
+        ]
+      },
+      {
+        "canonical": "Nuclear factor erythroid 2-related factor 2",
+        "members": [
+          "nuclear factor erythroid 2related factor 2"
+        ]
+      },
+      {
+        "canonical": "P2X purinoceptor 7",
+        "members": [
+          "p2x purinoceptor 7"
+        ]
+      },
+      {
+        "canonical": "Phosphatase and tensin homolog",
+        "members": [
+          "phosphatase and tensin homolog"
+        ]
+      },
+      {
+        "canonical": "Proliferating cell nuclear antigen",
+        "members": [
+          "proliferating cell nuclear antigen"
+        ]
+      },
+      {
+        "canonical": "Superoxide dismutase",
+        "members": [
+          "superoxide dismutase"
+        ]
+      }
+    ],
+    "flags": [
+      {
+        "name": "autophagic flux",
+        "reason": "Biological process, not a macromolecular target"
+      },
+      {
+        "name": "autophagy",
+        "reason": "Biological process, not a macromolecular target"
+      },
+      {
+        "name": "gammaaminobutyric acid",
+        "reason": "Small molecule neurotransmitter, not a protein target"
+      },
+      {
+        "name": "glutathione",
+        "reason": "Small molecule antioxidant, not a macromolecular target"
+      },
+      {
+        "name": "intracellular calcium concentration",
+        "reason": "Physiological parameter, not a macromolecular target"
+      },
+      {
+        "name": "intracellular copper",
+        "reason": "Metal ion, not a macromolecular target"
+      },
+      {
+        "name": "macrophages",
+        "reason": "Cell type, not a macromolecular target"
+      },
+      {
+        "name": "microglial homeostasis",
+        "reason": "Biological process, not a macromolecular target"
+      },
+      {
+        "name": "muscle protein synthesis",
+        "reason": "Biological process, not a macromolecular target"
+      },
+      {
+        "name": "nonphotochemical quenching",
+        "reason": "Biophysical process, not a macromolecular target"
+      },
+      {
+        "name": "nuclear factor erythroid 2related factor 2heme oxygenase1 pathway",
+        "reason": "Signaling pathway, not a macromolecular target"
+      },
+      {
+        "name": "phosphatidylinositol 3kinaseprotein kinase bcampresponse element binding protein signaling axis",
+        "reason": "Signaling pathway, not a macromolecular target"
+      },
+      {
+        "name": "phosphatidylinositol 3kinaseprotein kinase bmammalian target of rapamycin pathway",
+        "reason": "Signaling pathway, not a macromolecular target"
+      },
+      {
+        "name": "plasma membrane receptor complexes",
+        "reason": "Generic cellular component category, not a specific target"
+      },
+      {
+        "name": "reactive oxygen species",
+        "reason": "Chemical species, not a macromolecular target"
+      },
+      {
+        "name": "rocuronium bromide",
+        "reason": "Small molecule drug, not a macromolecular target"
+      },
+      {
+        "name": "taurine",
+        "reason": "Amino acid metabolite, not a macromolecular target"
+      },
+      {
+        "name": "violaxanthin deepoxidation",
+        "reason": "Biochemical process, not a macromolecular target"
+      }
+    ]
+  },
+  "Effect": {
+    "clusters": [
+      {
+        "canonical": "acetaminophen-induced chronic liver injury",
+        "members": [
+          "acetaminopheninduced chronic liver injury"
+        ]
+      },
+      {
+        "canonical": "chronic prostatitis/chronic pelvic pain syndrome",
+        "members": [
+          "chronic prostatitischronic pelvic pain syndrome"
+        ]
+      },
+      {
+        "canonical": "hepatitis B virus-related acute-on-chronic liver failure",
+        "members": [
+          "hepatitis b virusrelated acuteonchronic liver failure"
+        ]
+      },
+      {
+        "canonical": "non-arteritic anterior ischemic optic neuropathy",
+        "members": [
+          "nonarteritic anterior ischemic optic neuropathy"
+        ]
+      },
+      {
+        "canonical": "neonatal hypoxic-ischemic encephalopathy",
+        "members": [
+          "neonatal hypoxicischemic encephalopathy"
+        ]
+      },
+      {
+        "canonical": "S-phase cell cycle arrest",
+        "members": [
+          "sphase cell cycle arrest"
+        ]
+      },
+      {
+        "canonical": "age-related disease",
+        "members": [
+          "agerelated disease"
+        ]
+      },
+      {
+        "canonical": "Alzheimer's disease",
+        "members": [
+          "alzheimer disease"
+        ]
+      },
+      {
+        "canonical": "Clostridioides difficile spore germination",
+        "members": [
+          "clostridioides difficile spore germination"
+        ]
+      },
+      {
+        "canonical": "interleukin-6 production",
+        "members": [
+          "interleukin6 production"
+        ]
+      },
+      {
+        "canonical": "serum low-density lipoprotein cholesterol",
+        "members": [
+          "serum lowdensity lipoprotein cholesterol"
+        ]
+      },
+      {
+        "canonical": "soybean plant injury caused by Resseliella maxima",
+        "members": [
+          "soybean plant injury caused by resseliella maxima"
+        ]
+      },
+      {
+        "canonical": "amyloid-beta deposition",
+        "members": [
+          "amyloid beta deposition"
+        ]
+      },
+      {
+        "canonical": "repeated-sprint physical performance",
+        "members": [
+          "repeatedsprint physical performance"
+        ]
+      }
+    ],
+    "flags": [
+      {
+        "name": "glycine",
+        "reason": "This is an amino acid (chemical compound), not a biomedical effect or pathological phenotype."
+      },
+      {
+        "name": "laspartic acid",
+        "reason": "This is an amino acid (chemical compound), not a biomedical effect or pathological phenotype."
+      },
+      {
+        "name": "lglutamic acid",
+        "reason": "This is an amino acid (chemical compound), not a biomedical effect or pathological phenotype."
+      },
+      {
+        "name": "lproline",
+        "reason": "This is an amino acid (chemical compound), not a biomedical effect or pathological phenotype."
+      },
+      {
+        "name": "lvaline",
+        "reason": "This is an amino acid (chemical compound), not a biomedical effect or pathological phenotype."
+      },
+      {
+        "name": "serine",
+        "reason": "This is an amino acid (chemical compound), not a biomedical effect or pathological phenotype."
+      },
+      {
+        "name": "hostguest binding",
+        "reason": "This is a supramolecular chemistry interaction, not a biological or physiological effect."
+      },
+      {
+        "name": "hostguest binding selectivity and affinity",
+        "reason": "This is a chemical binding property, not a biological or physiological effect."
+      },
+      {
+        "name": "bioavailability of poorly watersoluble antineoplastic active pharmaceutical ingredients",
+        "reason": "This is a pharmacokinetic formulation property rather than a biological or physiological effect."
+      },
+      {
+        "name": "solubility of poorly watersoluble antineoplastic active pharmaceutical ingredients",
+        "reason": "This is a physical chemistry property of a pharmaceutical formulation, not a biological effect."
+      },
+      {
+        "name": "stability of poorly watersoluble antineoplastic active pharmaceutical ingredients",
+        "reason": "This is a physical chemistry property of a pharmaceutical formulation, not a biological effect."
+      },
+      {
+        "name": "dentin tubule penetration of calcium silicatebased root canal sealer",
+        "reason": "This is a mechanical property of a dental material, not a biological or physiological effect."
+      },
+      {
+        "name": "median lethal concentration values for larvae and engorged females",
+        "reason": "This is a quantitative toxicological metric (LC50), not a physiological or pathological effect."
+      },
+      {
+        "name": "rhipicephalus microplus larvae in pasture",
+        "reason": "This refers to ecological pest distribution in a habitat, not a biomedical effect."
+      }
+    ]
+  }
+}
