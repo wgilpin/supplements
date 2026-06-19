@@ -16,9 +16,10 @@ Build the supplement knowledge graph pipeline: **fetch → extract → normalise
 
 ```
 kuzu                # embedded graph DB
-google-genai        # Gemini SDK (structured output)
+google-genai        # Gemini SDK (structured output; async client used by the pipeline)
 httpx               # PubMed E-utilities + PubChem REST
 pydantic            # claim schema + validation (also Gemini response_schema)
+pandas              # required by Kùzu .get_as_df() (discovered in Phase 0)
 python-dotenv       # GEMINI_API_KEY from .env
 pytest              # tests
 ```
@@ -28,27 +29,29 @@ pytest              # tests
 ## Project layout
 
 ```
-src/skg/
+skg/               # repo root, NOT src/ — avoids uv packaging friction (see deviation note)
   config.py        # env, paths, supplement list, constants
   fetch.py         # step 1 — PubMed esearch + efetch
-  extract.py       # step 2 — Gemini → list[Claim] (the only bio step)
+  extract.py       # step 2 — Gemini → list[Claim] (the only bio step); async + retry
   normalise.py     # step 3 — string-normalise + compound synonym lookup
   synonyms.py      # PubChem add-time synonym dict builder (run once per supplement)
   schema.py        # pydantic Claim model + the canonical claim id hash
   graph.py         # step 4 — Kùzu DDL + MERGE/load
   canonicalise.py  # step 3b — LLM entity dedup (propose/apply); spec §5.4
-  pipeline.py      # wires 1→4 for a supplement; CLI entry
+  pipeline.py      # wires 1→4; parallel extraction + sequential load; CLI entry
 data/
   synonyms.json    # compound → canonical name map (built by synonyms.py)
-  abstracts/       # cached raw abstracts (so re-runs skip PubMed)
-  kg.kuzu          # the graph (gitignored)
+  canonical_map.json # reviewable dedup proposal (canonicalise.py)
+  abstracts/       # cached raw abstracts (so re-runs skip PubMed)        [gitignored]
+  claims/          # cached extracted claims per PMID (replay without re-LLM) [gitignored]
+  kg.kuzu          # the graph                                            [gitignored]
 eval/
-  sample.jsonl     # hand-labelled extraction sample
+  sample.jsonl / sample.csv  # extraction sample (CSV is the Sheets-labelling format)
   score.py         # precision = quotes that support the claim
 tests/
 ```
 
-`data/kg.kuzu` and `.env` go in `.gitignore`. Cached abstracts are committed-optional (small at this scale; gitignore by default).
+`data/kg.kuzu*`, `data/abstracts/`, `data/claims/`, and `.env` are `.gitignore`d.
 
 ---
 
@@ -72,7 +75,7 @@ Output of phase 0: confidence + any endpoint/API corrections folded into the mod
 - One extraction-quality note (not plumbing): it labelled the GABA-A *target* claim `direction="mixed"` where the quote supports `decreases`/`increases-activity` — exactly the kind of thing the §6 quote-vs-claim QA pass is meant to catch. Prompt tuning territory, not a blocker.
 
 ### Phase 1 — Schema (`schema.py`)
-- Pydantic `Claim`: `compound`, `target | None`, `effect | None`, `direction` (Literal `increases|decreases|none|mixed`), `dose_text`, `cohort_text`, `model`, `source_quote`. Reused as Gemini `response_schema`.
+- Pydantic `Claim`: `compound`, `target | None`, `effect | None`, `direction` (Literal `increases|decreases|none|mixed|modulates`), `dose_text`, `cohort_text`, `model`, `source_quote`. Reused as Gemini `response_schema`. (`modulates` added post-eval — see §6 / build results.)
 - `claim_id(claim, pmid)` → stable hash of `pmid + compound + target + effect + direction` (per spec §4.4).
 - Validation guard: reject a claim with both target *and* effect null (says nothing, per spec §4.4).
 
@@ -87,8 +90,9 @@ Output of phase 0: confidence + any endpoint/API corrections folded into the mod
 
 ### Phase 4 — Extract (`extract.py`) — the one bio step
 - One abstract in → `list[Claim]` out, via Gemini 3.5 Flash with `response_schema=list[Claim]`, `response_mime_type="application/json"`.
-- Prompt enforces spec §6: canonical full names (no abbreviations), `source_quote` **verbatim from the abstract**, `none` is a real claim, `""` for absent dose/cohort, never invent.
-- Post-parse guard: assert `source_quote` is a substring of the abstract (cheap, deterministic QA backstop); flag misses.
+- Prompt enforces spec §6: canonical full names (no abbreviations), single entity per target/effect (no glued pathways), `source_quote` **verbatim from the abstract**, `none` is a real claim, `""` for absent dose/cohort, never invent. **Post-eval additions:** `modulates` for directionless "influences"; causal-only rule (don't sign a direction for associative/observational sentences).
+- Post-parse guard: assert `source_quote` is a substring of the abstract (cheap, deterministic QA backstop); drop misses.
+- **Async**: `extract_claims_async` (with transient-error retry/backoff) is the single extraction entry point; the sync version was removed once the parallel pipeline landed.
 
 ### Phase 5 — Normalise (`normalise.py`)
 - `normalise_str(s)`: lowercase, strip punctuation, collapse whitespace (spec §5.3) — applied to all names.
@@ -108,8 +112,9 @@ Added after the §5.3 human-glance flaw was identified: the operator is not a bi
 - `evidence_score` assigned here from `model` via the §7 rubric (1–5 lookup).
 
 ### Phase 7 — Pipeline (`pipeline.py`)
-- `run(supplement)`: synonyms (if new) → fetch → extract per abstract → normalise → load. CLI: `uv run python -m skg.pipeline taurine`.
-- Run for the 3 starter supplements (taurine, glycine, N-acetyl cysteine); eyeball the final node list and hand-merge stragglers (spec §5.3 — a legitimate step at this scale).
+- `run(names)`: synonyms (if new) → fetch all → **dedup records by PMID** (a paper can surface under multiple supplements) → load cached claims, **extract uncached ones in parallel** (`extract_claims_batch`, staggered pacing + retry) → cache → **load sequentially into Kùzu** (single-writer). CLI: `uv run python -m skg.pipeline [names…]`.
+- Parallel extraction replaced the original serial loop to cut wall-time (the bottleneck was sequential LLM round-trips, not cost). Re-runs replay from the claims cache — near-free.
+- Entity dedup is handled by the canonicalise pass (Phase 5b / spec §5.4), **not** a human glance — that was the §5.3 flaw corrected mid-build.
 
 ### Phase 8 — Eval (`eval/`)
 Acceptance per spec §9: populated graph **+** a hand-labelled sample measuring extraction precision.
@@ -133,18 +138,20 @@ Acceptance per spec §9: populated graph **+** a hand-labelled sample measuring 
 
 ## M1 build results (2026-06-19) — COMPLETE
 
-End-to-end run over taurine, glycine, N-acetyl cysteine:
-- **57 abstracts** fetched + cached; **172 claims** extracted, **169** after claim-id dedup.
-- **Graph:** 65 Compound, 38 Target, 98 Effect, 169 Claim nodes.
-- **Multi-hop `compound → target → effect` chain present** (acceptance met).
-- **Directions:** 89 increases / 67 decreases / 7 mixed / 6 none (`none` captured ✅).
-- **Evidence scores** spread 1–5 (3 RCT, 17 obs, 50 animal, 50 in-vitro, 49 review).
-- **NAC synonym dedup** collapsed variants to one node ✅.
-- **Verbatim-quote QA backstop** dropped ~11 paraphrased quotes during the run.
-- **12 unit tests green.**
-- **Eval tooling ready:** `eval/sample.jsonl` holds 30 random claims awaiting hand-labelling; `python -m eval.score score` reports precision once labelled.
+Built over taurine, glycine, N-acetyl cysteine (57 abstracts fetched + cached). Two builds: an initial run, then a **rebuild** after the eval-driven prompt/schema fixes (single-entity targets, `modulates`, causal-only) and the move to a parallel extractor.
 
-**Extraction precision (hand-labelled, 30 claims, 2026-06-19):** 26/30 (87%) clearly supported, 1 clear error (reversed causality), 3 borderline. **Zero hallucinated quotes, zero fabricated claims** — all failures are structured-interpretation errors on real sentences. Error taxonomy: reversed causality; `direction` enum lacks a "modulates/unspecified" value (forces `mixed`); association-vs-causation over-claiming; verb-semantics (level vs activity). Off-target compounds confirmed faithful. Labels in `eval/sample analysis.csv`.
+**Current graph (post-rebuild):**
+- **222 Claim** nodes — 55 Compound, 75 Target, 92 Effect.
+- **Multi-hop `compound → target → effect` chain present** (acceptance met).
+- **Directions:** 90 increases / 80 decreases / **41 modulates** / 9 none / 2 mixed.
+- `evidence_score` assigned 1–5 per the §7 rubric.
+- **NAC synonym dedup** collapsed variants to one node ✅.
+- **Verbatim-quote QA backstop** drops paraphrased quotes during the run.
+- **22 unit tests green** (schema, normalise, graph/MERGE-dedup, canonicalise/merge).
+
+**The rebuild delta validates the fixes:** `mixed` fell from 7 → 2 (no longer overloaded — `modulates` now carries the 41 directionless "influences" claims it was wrongly absorbing); Targets rose 38 → 75 and Claims 169 → 222 (the single-entity rule splitting glued pathways into distinct, linkable nodes).
+
+**Extraction precision (hand-labelled, 30 claims each):** 87% on both the pre-fix and the fresh post-fix sample. Note these are *independent* 30-claim draws (n=30 ⇒ ±~12pp), so the equal headline isn't a head-to-head — what matters is **zero hallucinated quotes / zero fabricated claims** in both; all failures are structured-interpretation errors on real sentences (reversed causality, association-vs-causation, verb semantics). Off-target compounds confirmed faithful. First-round labels in `eval/sample analysis.csv`.
 
 **Canonicalisation pass added (spec §5.4).** After identifying that the §5.3 human-glance step parks *biological* synonym judgment on a non-biologist, added `skg/canonicalise.py` (propose → review → apply). First run merged 2 genuine duplicates (`ascorate`→`ascorbate`; two mangled `cortical serine protease` variants), preserved all 169 claims, and correctly **skipped ~45 single-member "rename" clusters** as no-ops (dedup-only; storage stays normalised, no node invented). Notably the LLM *correctly declined* to merge entries that look duplicate to a non-biologist but are distinct axes (`Nrf2` vs `Nrf2/HO-1 pathway`; `PI3K/Akt/mTOR` vs `PI3K/Akt/CREB`) — the §5.4 principle working as intended. Residual mangled multi-entity strings are an upstream extraction-prompt issue, logged for later.
 
