@@ -7,22 +7,9 @@ import json
 import sys
 
 from . import config, fetch, graph, synonyms
-from .extract import extract_claims, extract_claims_batch
+from .extract import extract_claims_batch
 from .normalise import load_synonyms
 from .schema import Claim
-
-
-def cached_claims(pmid: str, abstract: str) -> list[Claim]:
-    """Extract claims for an abstract, caching the raw LLM output per PMID so
-    re-runs (e.g. after a normalisation change) replay without re-calling the LLM.
-    Delete data/claims/<pmid>.json to force re-extraction."""
-    config.CLAIMS_DIR.mkdir(parents=True, exist_ok=True)
-    cpath = config.CLAIMS_DIR / f"{pmid}.json"
-    if cpath.exists():
-        return [Claim(**d) for d in json.loads(cpath.read_text())]
-    claims = extract_claims(abstract)
-    cpath.write_text(json.dumps([c.model_dump() for c in claims], indent=2))
-    return claims
 
 
 def run(supplement_names: list[str]) -> None:

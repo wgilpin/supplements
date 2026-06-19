@@ -65,29 +65,6 @@ def _get_client() -> genai.Client:
     return _client
 
 
-def extract_claims(abstract: str) -> list[Claim]:
-    """Extract claims from one abstract. Drops claims whose source_quote is not
-    verbatim (the §6 QA backstop) and claims that say nothing."""
-    resp = _get_client().models.generate_content(
-        model=config.GEMINI_MODEL,
-        contents=PROMPT.format(abstract=abstract),
-        config={
-            "response_mime_type": "application/json",
-            "response_schema": list[Claim],
-        },
-    )
-    claims: list[Claim] = resp.parsed or []
-    kept = []
-    for c in claims:
-        if not is_meaningful(c):
-            continue
-        if c.source_quote.strip() and c.source_quote.strip() not in abstract:
-            print(f"  dropped non-verbatim quote: {c.source_quote[:60]!r}...")
-            continue
-        kept.append(c)
-    return kept
-
-
 async def extract_claims_async(abstract: str) -> list[Claim]:
     """Extract claims from one abstract asynchronously, with retry logic on rate limits."""
     client = _get_client()
