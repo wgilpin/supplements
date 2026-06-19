@@ -1,6 +1,26 @@
+{% set ev_labels = {
+  5: "human RCT",
+  4: "human study",
+  3: "animal model",
+  2: "in vitro",
+  1: "review / opinion"
+} %}
 {# One chat turn: the user's question echoed, then the rendered answer. #}
 <div class="msg user">{{ q }}</div>
 <div class="msg bot">
+{% if candidate_ingestion %}
+  <div class="card ingestion-prompt" style="margin-bottom: 0.8rem;">
+    <p>I don't have claims for <strong>{{ candidate_ingestion }}</strong> in the database yet. Would you like to fetch and ingest it live?</p>
+    <form hx-post="/ingest" hx-target="closest .ingestion-prompt" hx-swap="outerHTML" class="ingest-form" hx-disabled-elt="find button">
+      <input type="hidden" name="supplement" value="{{ candidate_ingestion }}">
+      <button type="submit" class="btn btn-primary">Yes, Ingest {{ candidate_ingestion }}</button>
+      <span class="htmx-indicator ingest-spinner" style="margin-left: 0.5rem; color: var(--muted); font-size: 0.9rem;">
+        Ingesting... (takes ~1 minute)
+      </span>
+    </form>
+  </div>
+{% endif %}
+
 {% if req.query == 'unknown' %}
   <p class="note">I couldn't map that to a query I know. Try asking what a compound
     does, what affects an outcome, what acts on a target, which compounds share a
@@ -8,7 +28,7 @@
 {% elif not results %}
   <p class="note">No matching claims{% if req.entity %} for
     <strong>{{ req.entity }}</strong>{% endif %}{% if req.min_evidence > 1 %}
-    at evidence ≥ {{ req.min_evidence }}{% endif %}.</p>
+    at evidence ≥ {{ ev_labels[req.min_evidence] }}{% endif %}.</p>
 {% else %}
   {% if summary %}<p class="answer">{{ summary }}</p>{% endif %}
   <p class="interp">
@@ -19,7 +39,7 @@
     {% elif req.query == 'contradictions' %}Conflicting claims{% if req.entity %} for <strong>{{ req.entity }}</strong>{% endif %}
     {% elif req.query == 'search' %}Claims mentioning <strong>{{ req.entity }}</strong>
     {% endif %}
-    {% if req.min_evidence > 1 %}<span class="ev-filter">evidence ≥ {{ req.min_evidence }}</span>{% endif %}
+    {% if req.min_evidence > 1 %}<span class="ev-filter">evidence ≥ {{ ev_labels[req.min_evidence] }}</span>{% endif %}
     · {{ results|length }} result{{ '' if results|length == 1 else 's' }}
   </p>
 
@@ -36,7 +56,7 @@
     <div class="card bridge">
       <div class="card-head">
         <span class="compound">{{ r.other_compound }}</span>
-        <span class="ev ev-{{ r.evidence_score }}">evidence {{ r.evidence_score }}/5</span>
+        <span class="ev ev-{{ r.evidence_score }}">{{ ev_labels[r.evidence_score] }}</span>
       </div>
       <div class="rel">shares target <strong>{{ r.shared_target }}</strong>{% if r.effect %}
         → <span class="dir dir-{{ r.direction }}">{{ r.direction }}</span> {{ r.effect }}{% endif %}</div>
@@ -65,7 +85,7 @@
         <span class="dir dir-{{ r.direction }}">{{ r.direction }}</span>
         {% if r.target %}<span class="ent target">{{ r.target }}</span>{% endif %}
         {% if r.effect %}<span class="ent effect">{{ r.effect }}</span>{% endif %}
-        <span class="ev ev-{{ r.evidence_score }}">evidence {{ r.evidence_score }}/5</span>
+        <span class="ev ev-{{ r.evidence_score }}">{{ ev_labels[r.evidence_score] }}</span>
       </div>
       <blockquote>{{ r.source_quote }}</blockquote>
       <div class="meta">

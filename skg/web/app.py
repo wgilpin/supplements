@@ -34,8 +34,8 @@ templates = Jinja2Templates(directory=str(_BASE / "templates"))
 @asynccontextmanager
 async def lifespan(app: FastAPI) -> AsyncIterator[None]:
     setup_logging()
-    app.state.db = kuzu.Database(str(config.GRAPH_PATH), read_only=True)
-    logger.info("opened graph read-only: %s", config.GRAPH_PATH)
+    app.state.db = kuzu.Database(str(config.GRAPH_PATH))
+    logger.info("opened graph read-write: %s", config.GRAPH_PATH)
     yield
 
 
@@ -54,6 +54,13 @@ def ask(request: Request, q: Annotated[str, Form()]) -> HTMLResponse:
     req = router.route(conn, q)
     results = query.dispatch(conn, req)
 
+    # Check if this query is about a compound that is missing from the database
+    candidate_ingestion = None
+    if req.query in ("compound", "bridge") and req.entity:
+        resolved = query.resolve_entity(conn, req.entity, "compound")
+        if not resolved:
+            candidate_ingestion = req.entity
+
     # Claim results merge same-evidence rows (differ only by compound) for display.
     display: Sequence[BaseModel]
     if req.query in ("compound", "effect", "target", "search"):
@@ -67,5 +74,48 @@ def ask(request: Request, q: Annotated[str, Form()]) -> HTMLResponse:
     return templates.TemplateResponse(
         request=request,
         name="_answer.html",
-        context={"q": q, "req": req, "results": display, "summary": summary},
+        context={
+            "q": q,
+            "req": req,
+            "results": display,
+            "summary": summary,
+            "candidate_ingestion": candidate_ingestion
+        },
     )
+
+
+@app.post("/ingest", response_class=HTMLResponse)
+async def ingest(request: Request, supplement: Annotated[str, Form()]) -> HTMLResponse:
+    conn = kuzu.Connection(request.app.state.db)
+    resolved = query.resolve_entity(conn, supplement, "compound")
+    if not resolved:
+        logger.info("Starting live ingestion for %r", supplement)
+        try:
+            from ..pipeline import ingest_supplement_async
+            await ingest_supplement_async(conn, supplement)
+            resolved = query.resolve_entity(conn, supplement, "compound")
+        except Exception as e:
+            logger.exception("Failed to ingest %r", supplement)
+            return HTMLResponse(
+                content=f"<div class='alert alert-danger'>Error ingesting '<strong>{supplement}</strong>': {e}</div>"
+            )
+
+    if resolved:
+        # Retrieve claims for the newly ingested compound
+        results = query.claims_for_compound(conn, resolved, min_evidence=1)
+        display = query.group_claims(results)
+        summary = summarize.summarize(f"what does {resolved} do", display)
+
+        return templates.TemplateResponse(
+            request=request,
+            name="_ingested_results.html",
+            context={
+                "req": query.QueryRequest(query="compound", entity=resolved),
+                "results": display,
+                "summary": summary
+            }
+        )
+    else:
+        return HTMLResponse(
+            content=f"<div class='alert alert-warning'>Ingestion completed, but no claims could be extracted for '<strong>{supplement}</strong>' (no abstracts found or no claims matched the criteria).</div>"
+        )

@@ -6,6 +6,8 @@ import asyncio
 import json
 import sys
 
+import kuzu
+
 from . import config, fetch, graph, synonyms
 from .extract import extract_claims_batch
 from .normalise import load_synonyms
@@ -76,6 +78,72 @@ def run(supplement_names: list[str]) -> None:
 
     print(f"\nLoaded {total_claims} claims.")
     print("Graph node counts:", graph.counts(conn))
+
+
+async def ingest_supplement_async(conn: kuzu.Connection, name: str) -> int:
+    """Ingest a single supplement on demand.
+
+    1. Look up PubChem synonyms and update synonyms.json.
+    2. Search and fetch abstracts from PubMed.
+    3. Extract claims via LLM batch asynchronously.
+    4. Save claims to data/claims/ cached.
+    5. Load claims into the Kuzu database.
+    """
+    print(f"\n=== Ingesting {name} on-demand ===")
+
+    # 1. PubChem synonyms lookup
+    synonyms.build_all([name])
+    syns = load_synonyms()
+
+    # 2. Fetch abstracts
+    records = fetch.fetch_supplement(name)
+    if not records:
+        print(f"No abstracts found for {name}.")
+        return 0
+
+    seen_pmids = set()
+    deduped_records = []
+    for rec in records:
+        if rec["pmid"] not in seen_pmids:
+            seen_pmids.add(rec["pmid"])
+            deduped_records.append(rec)
+
+    config.CLAIMS_DIR.mkdir(parents=True, exist_ok=True)
+    cached_results = {}
+    uncached_records = []
+
+    for rec in deduped_records:
+        cpath = config.CLAIMS_DIR / f"{rec['pmid']}.json"
+        if cpath.exists():
+            try:
+                cached_results[rec["pmid"]] = [Claim(**d) for d in json.loads(cpath.read_text())]
+            except Exception as e:
+                print(f"  Failed to read cache for PMID {rec['pmid']} ({e}). Will re-extract.")
+                uncached_records.append(rec)
+        else:
+            uncached_records.append(rec)
+
+    # 3. Extract claims for uncached records
+    if uncached_records:
+        print(f"Extracting claims for {len(uncached_records)} uncached PMIDs asynchronously...")
+        extracted_map = await extract_claims_batch(uncached_records)
+
+        for pmid, claims in extracted_map.items():
+            cpath = config.CLAIMS_DIR / f"{pmid}.json"
+            cpath.write_text(json.dumps([c.model_dump() for c in claims], indent=2))
+            cached_results[pmid] = claims
+
+    # 4. Load claims into the database
+    print(f"Loading claims for {name} into database...")
+    loaded_claims = 0
+    for rec in deduped_records:
+        claims = cached_results.get(rec["pmid"], [])
+        for claim in claims:
+            if graph.load_claim(conn, claim, rec["pmid"], syns) is not None:
+                loaded_claims += 1
+
+    print(f"Ingested {name}: loaded {loaded_claims} claims.")
+    return loaded_claims
 
 
 if __name__ == "__main__":
