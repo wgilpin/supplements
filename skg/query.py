@@ -74,7 +74,7 @@ class ContradictionRow(BaseModel):
 
 
 QueryName = Literal["compound", "effect", "target", "bridge",
-                    "contradictions", "search", "unknown"]
+                    "contradictions", "search", "intersection", "unknown"]
 
 
 class QueryRequest(BaseModel):
@@ -82,6 +82,7 @@ class QueryRequest(BaseModel):
 
     query: QueryName
     entity: str | None = None
+    entities: list[str] = []
     min_evidence: int = 1
 
 
@@ -314,8 +315,8 @@ def contradictions(conn: kuzu.Connection,
 def resolve_entity(conn: kuzu.Connection, raw: str,
                    kind: Literal["compound", "target", "effect"]) -> str | None:
     """Map a free-text name to a real node name: normalise, then exact match,
-    then substring fallback (so "GABA" -> "gaba a receptor"). KISS — no fuzzy
-    library. Returns None if nothing plausible matches."""
+    then synonym lookup, then substring fallback (so "GABA" -> "gaba a receptor").
+    KISS — no fuzzy library. Returns None if nothing plausible matches."""
     norm = normalise_str(raw)
     if not norm:
         return None
@@ -324,12 +325,119 @@ def resolve_entity(conn: kuzu.Connection, raw: str,
     by_norm = {normalise_str(n): n for n in _distinct(conn, _LABEL_BY_KIND[kind])}
     if norm in by_norm:
         return by_norm[norm]
+
+    # Try synonym resolution for compounds
+    if kind == "compound":
+        from .normalise import load_synonyms
+        synonyms = load_synonyms()
+        resolved_name = synonyms.get(norm)
+        if resolved_name:
+            resolved_norm = normalise_str(resolved_name)
+            if resolved_norm in by_norm:
+                return by_norm[resolved_norm]
+
     hits = [orig for nn, orig in by_norm.items() if norm in nn or nn in norm]
     if hits:
         # Prefer the shortest match (closest to the typed term).
         return min(hits, key=len)
     logger.info("resolve_entity: no match for %r (%s)", raw, kind)
     return None
+
+
+def claims_for_compound_intersection(conn: kuzu.Connection, compounds: list[str],
+                                    min_evidence: int = 1) -> list[ClaimRow]:
+    """Find claims where multiple compounds share the same effects or targets."""
+    logger.info("claims_for_compound_intersection(%r, min_evidence=%d)", compounds, min_evidence)
+    if not compounds:
+        return []
+
+    # 1. Shared effects
+    df_effects = graph.query_df(
+        conn,
+        f"""MATCH (c:Compound)-[:HAS_CLAIM]->(cl:Claim)-[:HAS_EFFECT]->(e:Effect)
+            WHERE c.name IN $compounds AND cl.evidence_score >= $min_ev
+            WITH e, count(distinct c) AS num_compounds
+            WHERE num_compounds = $expected_count
+            MATCH (c:Compound)-[:HAS_CLAIM]->(cl:Claim)-[:HAS_EFFECT]->(e)
+            WHERE c.name IN $compounds AND cl.evidence_score >= $min_ev
+            OPTIONAL MATCH (cl)-[:ON_TARGET]->(t:Target)
+            RETURN {_CLAIM_PROJECTION}
+            ORDER BY e.name, evidence_score DESC""",
+        {"compounds": compounds, "min_ev": min_evidence, "expected_count": len(compounds)}
+    )
+
+    # 2. Shared targets
+    df_targets = graph.query_df(
+        conn,
+        f"""MATCH (c:Compound)-[:HAS_CLAIM]->(cl:Claim)-[:ON_TARGET]->(t:Target)
+            WHERE c.name IN $compounds AND cl.evidence_score >= $min_ev
+            WITH t, count(distinct c) AS num_compounds
+            WHERE num_compounds = $expected_count
+            MATCH (c:Compound)-[:HAS_CLAIM]->(cl:Claim)-[:ON_TARGET]->(t)
+            WHERE c.name IN $compounds AND cl.evidence_score >= $min_ev
+            OPTIONAL MATCH (cl)-[:HAS_EFFECT]->(e:Effect)
+            RETURN {_CLAIM_PROJECTION}
+            ORDER BY t.name, evidence_score DESC""",
+        {"compounds": compounds, "min_ev": min_evidence, "expected_count": len(compounds)}
+    )
+
+    # Combine and de-duplicate claims if any overlap
+    seen_keys = set()
+    combined_rows = []
+
+    for r in _claim_rows(df_effects) + _claim_rows(df_targets):
+        key = (r.compound, r.target, r.effect, r.source_pmid, r.source_quote)
+        if key not in seen_keys:
+            seen_keys.add(key)
+            combined_rows.append(r)
+
+    return combined_rows
+
+
+def claims_for_effect_intersection(conn: kuzu.Connection, effects: list[str],
+                                  min_evidence: int = 1) -> list[ClaimRow]:
+    """Find claims for compounds that affect all the specified effects."""
+    logger.info("claims_for_effect_intersection(%r, min_evidence=%d)", effects, min_evidence)
+    if not effects:
+        return []
+
+    df = graph.query_df(
+        conn,
+        f"""MATCH (c:Compound)-[:HAS_CLAIM]->(cl:Claim)-[:HAS_EFFECT]->(e:Effect)
+            WHERE e.name IN $effects AND cl.evidence_score >= $min_ev
+            WITH c, count(distinct e) AS num_effects
+            WHERE num_effects = $expected_count
+            MATCH (c)-[:HAS_CLAIM]->(cl:Claim)-[:HAS_EFFECT]->(e:Effect)
+            WHERE e.name IN $effects AND cl.evidence_score >= $min_ev
+            OPTIONAL MATCH (cl)-[:ON_TARGET]->(t:Target)
+            RETURN {_CLAIM_PROJECTION}
+            ORDER BY c.name, evidence_score DESC""",
+        {"effects": effects, "min_ev": min_evidence, "expected_count": len(effects)}
+    )
+    return _claim_rows(df)
+
+
+def claims_for_target_intersection(conn: kuzu.Connection, targets: list[str],
+                                  min_evidence: int = 1) -> list[ClaimRow]:
+    """Find claims for compounds that act on all the specified targets."""
+    logger.info("claims_for_target_intersection(%r, min_evidence=%d)", targets, min_evidence)
+    if not targets:
+        return []
+
+    df = graph.query_df(
+        conn,
+        f"""MATCH (c:Compound)-[:HAS_CLAIM]->(cl:Claim)-[:ON_TARGET]->(t:Target)
+            WHERE t.name IN $targets AND cl.evidence_score >= $min_ev
+            WITH c, count(distinct t) AS num_targets
+            WHERE num_targets = $expected_count
+            MATCH (c)-[:HAS_CLAIM]->(cl:Claim)-[:ON_TARGET]->(t:Target)
+            WHERE t.name IN $targets AND cl.evidence_score >= $min_ev
+            OPTIONAL MATCH (cl)-[:HAS_EFFECT]->(e:Effect)
+            RETURN {_CLAIM_PROJECTION}
+            ORDER BY c.name, evidence_score DESC""",
+        {"targets": targets, "min_ev": min_evidence, "expected_count": len(targets)}
+    )
+    return _claim_rows(df)
 
 
 # --- dispatch (typed; no Any-registry) -----------------------------------------
@@ -360,6 +468,26 @@ def dispatch(conn: kuzu.Connection, req: QueryRequest) -> QueryResult:
             return contradictions(conn, eff)
         case "search":
             return _search_fallback(conn, req)
+        case "intersection":
+            if not req.entities:
+                return []
+            resolved_compounds = [resolve_entity(conn, ent, "compound") for ent in req.entities]
+            resolved_effects = [resolve_entity(conn, ent, "effect") for ent in req.entities]
+            resolved_targets = [resolve_entity(conn, ent, "target") for ent in req.entities]
+
+            if all(resolved_compounds):
+                return claims_for_compound_intersection(
+                    conn, [c for c in resolved_compounds if c is not None], req.min_evidence
+                )
+            elif all(resolved_effects):
+                return claims_for_effect_intersection(
+                    conn, [e for e in resolved_effects if e is not None], req.min_evidence
+                )
+            elif all(resolved_targets):
+                return claims_for_target_intersection(
+                    conn, [t for t in resolved_targets if t is not None], req.min_evidence
+                )
+            return []
         case "unknown":
             return []
 

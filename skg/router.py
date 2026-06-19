@@ -35,18 +35,24 @@ def _get_client() -> genai.Client:
 
 PROMPT = """You route a user's question to ONE query over a supplement knowledge graph.
 Pick exactly one `query` type:
-- "compound": what a given compound does. entity = the compound.
-- "effect": what affects a given effect/outcome/disease. entity = the effect.
-- "target": what acts on a given molecular target (protein/receptor/pathway). entity = the target.
+- "compound": what a single given compound does. entity = the compound.
+- "effect": what affects a single given effect/outcome/disease. entity = the effect.
+- "target": what acts on a single given molecular target (protein/receptor/pathway). entity = the target.
 - "bridge": OTHER compounds that share a biological target with a given compound. entity = the compound.
 - "contradictions": conflicting (increase vs decrease) claims for an effect. entity = the effect, or null for all effects.
 - "search": a free-text keyword search over the evidence quotes — use when the user asks what mentions/studies a term, or when the term is unlikely to be a normalised compound/effect/target node (e.g. a disease named only by abbreviation). entity = the keyword.
+- "intersection": when the user asks about the intersection of multiple entities (e.g. what is affected by BOTH compound A and compound B, what affects BOTH effect A and effect B, or what acts on BOTH target A and target B). entities = the list of these multiple entities.
 - "unknown": the question does not map to any of the above.
 
-Extract `entity`:
+Extract `entity` (for non-intersection queries):
 - If a name in the relevant list below clearly matches what the user means, return that EXACT name (expand abbreviations to the matching full name, e.g. "GABA" -> the matching receptor name in the list).
 - Otherwise return the user's own term.
-- Use null only for a contradictions question with no specific effect.
+- Use null for a contradictions question with no specific effect, or for intersection queries.
+
+Extract `entities` (ONLY for intersection queries):
+- If a name in the relevant lists below clearly matches what the user means, return that EXACT name in the list.
+- Otherwise return the user's own terms.
+- For non-intersection queries, set `entities` to an empty list.
 
 Extract `min_evidence` (1-5): default 1. Use 4 if the user asks for strong/high-quality/human evidence, 5 if they ask specifically for RCT/clinical-trial evidence.
 

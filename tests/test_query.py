@@ -190,6 +190,11 @@ def test_resolve_entity_unnormalised_node_name(conn):
     assert query.resolve_entity(conn, "n acetyl cysteine", "compound") == "N-Acetyl Cysteine"
 
 
+def test_resolve_entity_synonym(conn):
+    conn.execute("MERGE (c:Compound {name: 'curcumin'})")
+    assert query.resolve_entity(conn, "curcurmin", "compound") == "curcumin"
+
+
 # --- group_claims (display merge of same-evidence rows) ------------------------
 
 def _row(compound, effect, quote, pmid, direction="modulates", evidence=4):
@@ -235,3 +240,43 @@ def test_dispatch_compound(conn):
 def test_dispatch_unknown_returns_empty(conn):
     req = query.QueryRequest(query="unknown", entity=None, min_evidence=1)
     assert query.dispatch(conn, req) == []
+
+
+def test_claims_for_compound_intersection(conn):
+    rows = query.claims_for_compound_intersection(conn, ["taurine", "glycine"])
+    assert len(rows) == 2
+    assert {r.source_pmid for r in rows} == {"p1", "p2"}
+    assert all(r.target == "gaba a receptor" for r in rows)
+
+
+def test_claims_for_effect_intersection(tmp_path):
+    c = graph.connect(tmp_path / "test_effect.kuzu")
+    graph.init_schema(c)
+    graph.load_claim(c, _claim("compA", None, "anxiety", "decreases", "human RCT", "A reduced anxiety."), "p10", synonyms={})
+    graph.load_claim(c, _claim("compA", None, "depression", "decreases", "human RCT", "A reduced depression."), "p11", synonyms={})
+    graph.load_claim(c, _claim("compB", None, "anxiety", "decreases", "human RCT", "B reduced anxiety."), "p12", synonyms={})
+
+    rows = query.claims_for_effect_intersection(c, ["anxiety", "depression"])
+    assert len(rows) == 2
+    assert all(r.compound == "compa" for r in rows)
+    assert {r.effect for r in rows} == {"anxiety", "depression"}
+
+
+def test_claims_for_target_intersection(tmp_path):
+    c = graph.connect(tmp_path / "test_target.kuzu")
+    graph.init_schema(c)
+    graph.load_claim(c, _claim("compA", "rec1", None, "decreases", "human RCT", "A acts on rec1."), "p20", synonyms={})
+    graph.load_claim(c, _claim("compA", "rec2", None, "decreases", "human RCT", "A acts on rec2."), "p21", synonyms={})
+    graph.load_claim(c, _claim("compB", "rec1", None, "decreases", "human RCT", "B acts on rec1."), "p22", synonyms={})
+
+    rows = query.claims_for_target_intersection(c, ["rec1", "rec2"])
+    assert len(rows) == 2
+    assert all(r.compound == "compa" for r in rows)
+    assert {r.target for r in rows} == {"rec1", "rec2"}
+
+
+def test_dispatch_intersection(conn):
+    req = query.QueryRequest(query="intersection", entities=["taurine", "glycine"], min_evidence=1)
+    rows = query.dispatch(conn, req)
+    assert len(rows) == 2
+    assert {r.source_pmid for r in rows} == {"p1", "p2"}

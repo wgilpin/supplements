@@ -27,7 +27,8 @@
     target, or about contradictions for an outcome.</p>
 {% elif not results %}
   <p class="note">No matching claims{% if req.entity %} for
-    <strong>{{ req.entity }}</strong>{% endif %}{% if req.min_evidence > 1 %}
+    <strong>{{ req.entity }}</strong>{% elif req.entities %} for
+    <strong>{{ req.entities | join(' and ') }}</strong>{% endif %}{% if req.min_evidence > 1 %}
     at evidence ≥ {{ ev_labels[req.min_evidence] }}{% endif %}.</p>
 {% else %}
   {% if summary %}<p class="answer">{{ summary }}</p>{% endif %}
@@ -38,6 +39,7 @@
     {% elif req.query == 'bridge' %}Compounds sharing a target with <strong>{{ req.entity }}</strong>
     {% elif req.query == 'contradictions' %}Conflicting claims{% if req.entity %} for <strong>{{ req.entity }}</strong>{% endif %}
     {% elif req.query == 'search' %}Claims mentioning <strong>{{ req.entity }}</strong>
+    {% elif req.query == 'intersection' %}Claims for <strong>{{ req.entities | join(' and ') }}</strong>
     {% endif %}
     {% if req.min_evidence > 1 %}<span class="ev-filter">evidence ≥ {{ ev_labels[req.min_evidence] }}</span>{% endif %}
     · {{ results|length }} result{{ '' if results|length == 1 else 's' }}

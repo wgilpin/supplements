@@ -60,10 +60,17 @@ def ask(request: Request, q: Annotated[str, Form()]) -> HTMLResponse:
         resolved = query.resolve_entity(conn, req.entity, "compound")
         if not resolved:
             candidate_ingestion = req.entity
+    elif req.query == "intersection" and req.entities:
+        for ent in req.entities:
+            if not query.resolve_entity(conn, ent, "compound") and \
+               not query.resolve_entity(conn, ent, "effect") and \
+               not query.resolve_entity(conn, ent, "target"):
+                candidate_ingestion = ent
+                break
 
     # Claim results merge same-evidence rows (differ only by compound) for display.
     display: Sequence[BaseModel]
-    if req.query in ("compound", "effect", "target", "search"):
+    if req.query in ("compound", "effect", "target", "search", "intersection"):
         display = query.group_claims(cast("list[query.ClaimRow]", results))
     else:
         display = results
