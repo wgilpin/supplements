@@ -10,6 +10,7 @@ dependencies = [
     "httpx>=0.28.1",
     "jinja2>=3.1.6",
     "kuzu>=0.11.3",
+    "markdown>=3.10.2",
     "pandas>=3.0.3",
     "pydantic>=2.13.4",
     "python-dotenv>=1.2.2",

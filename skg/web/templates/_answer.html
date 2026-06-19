@@ -31,7 +31,7 @@
     <strong>{{ req.entities | join(' and ') }}</strong>{% endif %}{% if req.min_evidence > 1 %}
     at evidence ≥ {{ ev_labels[req.min_evidence] }}{% endif %}.</p>
 {% else %}
-  {% if summary %}<p class="answer">{{ summary }}</p>{% endif %}
+  {% if summary %}<div class="answer">{{ summary | markdown | safe }}</div>{% endif %}
   <p class="interp">
     {% if req.query == 'compound' %}Claims about <strong>{{ req.entity }}</strong>
     {% elif req.query == 'effect' %}Compounds affecting <strong>{{ req.entity }}</strong>

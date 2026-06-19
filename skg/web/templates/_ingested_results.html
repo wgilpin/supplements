@@ -5,7 +5,7 @@
   2: "in vitro",
   1: "review / opinion"
 } %}
-{% if summary %}<p class="answer">{{ summary }}</p>{% endif %}
+{% if summary %}<div class="answer">{{ summary | markdown | safe }}</div>{% endif %}
 <p class="interp">
   Claims about <strong>{{ req.entity }}</strong>
   · {{ results|length }} result{{ '' if results|length == 1 else 's' }}

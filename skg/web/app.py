@@ -15,7 +15,10 @@ from contextlib import asynccontextmanager
 from pathlib import Path
 from typing import Annotated, cast
 
+import re
+
 import kuzu
+import markdown
 from fastapi import FastAPI, Form, Request
 from fastapi.responses import HTMLResponse
 from fastapi.staticfiles import StaticFiles
@@ -29,6 +32,35 @@ logger = logging.getLogger(__name__)
 
 _BASE = Path(__file__).parent
 templates = Jinja2Templates(directory=str(_BASE / "templates"))
+
+
+def render_markdown(text: str) -> str:
+    # Ensure a blank line before list blocks for proper markdown rendering.
+    lines = text.splitlines()
+    if not lines:
+        return ""
+
+    result = [lines[0]]
+    list_marker_pattern = re.compile(r"^\s*([*+-]|\d+\.)\s")
+
+    for i in range(1, len(lines)):
+        prev_line = lines[i - 1].strip()
+        curr_line = lines[i]
+
+        # If current line starts a list, but previous line was not empty and did not start a list
+        if (
+            list_marker_pattern.match(curr_line)
+            and prev_line
+            and not list_marker_pattern.match(prev_line)
+        ):
+            result.append("")
+        result.append(curr_line)
+
+    prepared_text = "\n".join(result)
+    return markdown.markdown(prepared_text)
+
+
+templates.env.filters["markdown"] = render_markdown
 
 
 @asynccontextmanager
