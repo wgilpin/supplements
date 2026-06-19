@@ -12,6 +12,7 @@ load_dotenv()
 ROOT = Path(__file__).resolve().parent.parent
 DATA_DIR = ROOT / "data"
 ABSTRACTS_DIR = DATA_DIR / "abstracts"
+CLAIMS_DIR = DATA_DIR / "claims"
 SYNONYMS_PATH = DATA_DIR / "synonyms.json"
 GRAPH_PATH = DATA_DIR / "kg.kuzu"
 

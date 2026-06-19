@@ -15,6 +15,7 @@ wheels/
 # Graph DB + cached data
 data/kg.kuzu*
 data/abstracts/
+data/claims/
 
 # macOS
 .DS_Store

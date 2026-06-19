@@ -3,7 +3,14 @@ from skg.normalise import canonical_compound, canonical_entity, normalise_str
 
 def test_normalise_lowercases_strips_punct_collapses_ws():
     assert normalise_str("  Alzheimer's   Disease! ") == "alzheimers disease"
-    assert normalise_str("GABA-A receptor") == "gabaa receptor"
+
+
+def test_normalise_hyphens_and_slashes_become_spaces():
+    # Hyphens must not glue words (the "aminemodified" bug).
+    assert normalise_str("amine-modified") == "amine modified"
+    assert normalise_str("taurine-based") == "taurine based"
+    assert normalise_str("GABA-A receptor") == "gaba a receptor"
+    assert normalise_str("PI3K/Akt") == "pi3k akt"
 
 
 def test_canonical_compound_uses_synonym_map():

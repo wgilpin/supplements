@@ -61,4 +61,4 @@ def test_multihop_query_chain(conn):
            RETURN c.name AS compound, t.name AS target"""
     ).get_as_df()
     assert df["compound"][0] == "taurine"
-    assert df["target"][0] == "gammaaminobutyric acid type a receptor"
+    assert df["target"][0] == "gamma aminobutyric acid type a receptor"

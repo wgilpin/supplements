@@ -56,7 +56,7 @@ def test_merge_compound_repoints_from_side(conn):
     df = conn.execute(
         "MATCH (c:Compound)-[:HAS_CLAIM]->(:Claim) RETURN DISTINCT c.name AS name"
     ).get_as_df()
-    assert list(df["name"]) == ["nacetylcysteine"]  # an existing normalised member
+    assert list(df["name"]) == ["n acetylcysteine"]  # an existing normalised member
 
 
 def test_merge_skips_nonexistent_member(conn):

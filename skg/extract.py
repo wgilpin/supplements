@@ -17,6 +17,17 @@ target and/or a downstream effect. Rules:
   At least one of target/effect must be present.
 - Use CANONICAL FULL NAMES for target and effect — expand all abbreviations
   (e.g. "AD" -> "Alzheimer disease", "GABA-A" -> "gamma-aminobutyric acid type A receptor").
+- Each target and each effect must name a SINGLE biological entity. NEVER
+  concatenate several entity names into one value (no "A / B / C", no
+  "A-B pathway" built from distinct proteins, no "A and B complex" unless that
+  complex is itself the one named entity).
+- If a sentence implicates a multi-component pathway, axis, or signalling
+  cascade (e.g. "PI3K/AKT/mTOR pathway", "Nrf2/HO-1 axis"), do NOT emit it as
+  one glued target/effect. Instead emit one separate claim per distinct
+  component (one for "phosphoinositide 3-kinase", one for "protein kinase B",
+  one for "mammalian target of rapamycin"), each with the same source_quote,
+  direction, and metadata. If only one component is truly the point of the
+  sentence, emit just that single most-specific entity.
 - direction: exactly one of "increases", "decreases", "none", "mixed".
   "none" = explicitly no significant effect. This is a VALID, valuable claim — keep it.
 - dose_text: the dose/regimen sentence verbatim if stated, else "".
