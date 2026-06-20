@@ -10,7 +10,8 @@ Database is opened at startup and a fresh Connection is made per request
 from __future__ import annotations
 
 import logging
-from collections.abc import AsyncIterator, Sequence
+import gc
+from collections.abc import AsyncIterator, Generator, Sequence
 from contextlib import asynccontextmanager
 from pathlib import Path
 from typing import Annotated, cast
@@ -19,7 +20,7 @@ import re
 
 import kuzu
 import markdown
-from fastapi import FastAPI, Form, Request
+from fastapi import Depends, FastAPI, Form, Request
 from fastapi.responses import HTMLResponse
 from fastapi.staticfiles import StaticFiles
 from fastapi.templating import Jinja2Templates
@@ -64,11 +65,31 @@ def render_markdown(text: str) -> str:
 templates.env.filters["markdown"] = render_markdown
 
 
+def get_db_conn(request: Request) -> Generator[kuzu.Connection, None, None]:
+    # Check if a test database has been injected via app.state.db, use it.
+    test_db = getattr(request.app.state, "db", None)
+    if test_db is not None:
+        conn = kuzu.Connection(test_db)
+        try:
+            yield conn
+        finally:
+            del conn
+    else:
+        db = kuzu.Database(str(config.GRAPH_PATH))
+        conn = kuzu.Connection(db)
+        try:
+            yield conn
+        finally:
+            del conn
+            del db
+            gc.collect()
+
+
 @asynccontextmanager
 async def lifespan(app: FastAPI) -> AsyncIterator[None]:
     setup_logging()
-    app.state.db = kuzu.Database(str(config.GRAPH_PATH))
-    logger.info("opened graph read-write: %s", config.GRAPH_PATH)
+    app.state.db = None
+    logger.info("app started; database will be opened on demand: %s", config.GRAPH_PATH)
     yield
 
 
@@ -82,8 +103,11 @@ def index(request: Request) -> HTMLResponse:
 
 
 @app.post("/ask", response_class=HTMLResponse)
-def ask(request: Request, q: Annotated[str, Form()]) -> HTMLResponse:
-    conn = kuzu.Connection(request.app.state.db)
+def ask(
+    request: Request,
+    q: Annotated[str, Form()],
+    conn: Annotated[kuzu.Connection, Depends(get_db_conn)],
+) -> HTMLResponse:
     req = router.route(conn, q)
     results = query.dispatch(conn, req)
 
@@ -143,8 +167,11 @@ def ask(request: Request, q: Annotated[str, Form()]) -> HTMLResponse:
 
 
 @app.post("/ingest", response_class=HTMLResponse)
-async def ingest(request: Request, supplement: Annotated[str, Form()]) -> HTMLResponse:
-    conn = kuzu.Connection(request.app.state.db)
+async def ingest(
+    request: Request,
+    supplement: Annotated[str, Form()],
+    conn: Annotated[kuzu.Connection, Depends(get_db_conn)],
+) -> HTMLResponse:
     resolved = query.resolve_entity(conn, supplement, "compound")
     
     if not resolved or not is_compound_ingested(resolved):
@@ -191,8 +218,10 @@ async def ingest(request: Request, supplement: Annotated[str, Form()]) -> HTMLRe
 
 
 @app.post("/canonicalise", response_class=HTMLResponse)
-async def canonicalise_endpoint(request: Request) -> HTMLResponse:
-    conn = kuzu.Connection(request.app.state.db)
+async def canonicalise_endpoint(
+    request: Request,
+    conn: Annotated[kuzu.Connection, Depends(get_db_conn)],
+) -> HTMLResponse:
     logger.info("Starting manual canonicalisation/deduplication pass")
     try:
         from ..canonicalise import propose, apply_map
