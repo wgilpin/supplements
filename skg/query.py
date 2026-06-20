@@ -195,19 +195,53 @@ def list_supplements(conn: kuzu.Connection,
 
 # --- the four essential queries ------------------------------------------------
 
+
+def _expand_compound_names(conn: kuzu.Connection, compound: str) -> list[str]:
+    """Find all compound names in the database that map to the same canonical synonym group."""
+    from .normalise import load_synonyms, normalise_str, CUSTOM_SYNONYMS
+    syns = load_synonyms()
+    
+    norm = normalise_str(compound)
+    canonical_name = CUSTOM_SYNONYMS.get(norm, syns.get(norm, compound))
+    norm_canonical = normalise_str(canonical_name)
+    
+    all_names = {canonical_name, compound}
+    for k, v in CUSTOM_SYNONYMS.items():
+        if normalise_str(v) == norm_canonical:
+            all_names.add(v)
+            all_names.add(k)
+            
+    for k, v in syns.items():
+        if normalise_str(v) == norm_canonical:
+            all_names.add(v)
+            all_names.add(k)
+            
+    db_compounds = list_compounds(conn)
+    db_norm = {normalise_str(c): c for c in db_compounds}
+    
+    matched = []
+    for name in all_names:
+        norm_name = normalise_str(name)
+        if norm_name in db_norm:
+            matched.append(db_norm[norm_name])
+            
+    return matched if matched else [compound]
+
+
 def claims_for_compound(conn: kuzu.Connection, compound: str,
                         min_evidence: int = 1) -> list[ClaimRow]:
     """What does this compound do? (spec §9)"""
-    logger.info("claims_for_compound(%r, min_evidence=%d)", compound, min_evidence)
+    names = _expand_compound_names(conn, compound)
+    logger.info("claims_for_compound(%r -> %r, min_evidence=%d)", compound, names, min_evidence)
     df = graph.query_df(
         conn,
-        f"""MATCH (c:Compound {{name: $name}})-[:HAS_CLAIM]->(cl:Claim)
-            WHERE cl.evidence_score >= $min_ev
+        f"""MATCH (c:Compound)-[:HAS_CLAIM]->(cl:Claim)
+            WHERE c.name IN $names AND cl.evidence_score >= $min_ev
             OPTIONAL MATCH (cl)-[:ON_TARGET]->(t:Target)
             OPTIONAL MATCH (cl)-[:HAS_EFFECT]->(e:Effect)
             RETURN {_CLAIM_PROJECTION}
             ORDER BY evidence_score DESC""",
-        {"name": compound, "min_ev": min_evidence},
+        {"names": names, "min_ev": min_evidence},
     )
     return _claim_rows(df)
 
@@ -245,22 +279,23 @@ def claims_for_target(conn: kuzu.Connection, target: str,
 
 
 def shared_target_bridge(conn: kuzu.Connection, compound: str,
-                         min_evidence: int = 1) -> list[BridgeRow]:
+                          min_evidence: int = 1) -> list[BridgeRow]:
     """The multi-hop query that earns the word 'graph' (spec §9): other
     compounds that share a target with this one, and the effects each reaches."""
-    logger.info("shared_target_bridge(%r, min_evidence=%d)", compound, min_evidence)
+    names = _expand_compound_names(conn, compound)
+    logger.info("shared_target_bridge(%r -> %r, min_evidence=%d)", compound, names, min_evidence)
     df = graph.query_df(
         conn,
-        """MATCH (c1:Compound {name: $name})-[:HAS_CLAIM]->(:Claim)-[:ON_TARGET]->(t:Target)
+        """MATCH (c1:Compound)-[:HAS_CLAIM]->(:Claim)-[:ON_TARGET]->(t:Target)
                  <-[:ON_TARGET]-(cl2:Claim)<-[:HAS_CLAIM]-(c2:Compound)
-           WHERE c2.name <> $name AND cl2.evidence_score >= $min_ev
+           WHERE c1.name IN $names AND NOT c2.name IN $names AND cl2.evidence_score >= $min_ev
            OPTIONAL MATCH (cl2)-[:HAS_EFFECT]->(e:Effect)
            RETURN t.name AS shared_target, c2.name AS other_compound,
                   e.name AS effect, cl2.direction AS direction,
                   cl2.evidence_score AS evidence_score,
                   cl2.source_pmid AS source_pmid, cl2.source_quote AS source_quote
            ORDER BY evidence_score DESC""",
-        {"name": compound, "min_ev": min_evidence},
+        {"names": names, "min_ev": min_evidence},
     )
     return [
         BridgeRow(

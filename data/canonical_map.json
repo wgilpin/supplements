@@ -2,16 +2,31 @@
   "Compound": {
     "clusters": [
       {
-        "canonical": "acetylcysteine",
+        "canonical": "s-adenosylmethionine",
         "members": [
-          "N-acetyl cysteine"
+          "s adenosyl l methionine",
+          "s adenosylmethionine"
         ]
       },
       {
-        "canonical": "vitamin c",
+        "canonical": "magnesium sulfate",
         "members": [
-          "ascorbate",
-          "vitamin c"
+          "magnesium sulfate",
+          "magnesium sulphate"
+        ]
+      },
+      {
+        "canonical": "dasatinib and quercetin",
+        "members": [
+          "dasatinib and quercetin",
+          "dasatinib quercetin"
+        ]
+      },
+      {
+        "canonical": "glucagon-like peptide-1 receptor agonist",
+        "members": [
+          "glucagon like peptide 1 receptor agonist",
+          "glucagon like peptide 1 receptor agonists"
         ]
       },
       {
@@ -20,95 +35,375 @@
           "pyridoxine",
           "vitamin b6"
         ]
+      },
+      {
+        "canonical": "folate",
+        "members": [
+          "folate",
+          "vitamin b9"
+        ]
+      },
+      {
+        "canonical": "dapansutrile",
+        "members": [
+          "dapansutrile",
+          "olt1177"
+        ]
       }
     ],
     "flags": [
       {
-        "name": "amine modified polystyrene microparticles",
-        "reason": "synthetic polymer microparticle material, not a small molecule chemical compound"
+        "name": "andryala integrifolia leaf extract",
+        "reason": "crude plant extract"
       },
       {
-        "name": "antioxidants",
-        "reason": "broad therapeutic class/category, not a specific chemical entity"
-      },
-      {
-        "name": "baicalin and valproic acid",
-        "reason": "mixture of two distinct chemical compounds"
-      },
-      {
-        "name": "branched chain amino acids",
-        "reason": "group of amino acids, not a single chemical compound"
+        "name": "blue mussel lipid extract",
+        "reason": "complex lipid extract"
       },
       {
         "name": "citrus depressa peel ethanolic extract",
-        "reason": "complex natural extract containing many different chemical entities"
+        "reason": "crude plant extract"
       },
       {
-        "name": "cocaine plus ethanol",
-        "reason": "mixture of two distinct chemical compounds"
+        "name": "juniperus phoenicea ssp turbinata berry extract",
+        "reason": "crude plant extract"
       },
       {
-        "name": "corticosteroids",
-        "reason": "class of steroid hormones, not a specific chemical compound"
+        "name": "juniperus phoenicea ssp turbinata leaf extract",
+        "reason": "crude plant extract"
       },
       {
-        "name": "digestible sulphur amino acids",
-        "reason": "dietary nutrient category, not a specific chemical compound"
-      },
-      {
-        "name": "fertilix",
-        "reason": "brand name of a multi-ingredient dietary supplement, not a chemical entity"
-      },
-      {
-        "name": "glucagon like peptide 1 receptor agonist",
-        "reason": "pharmacological class / peptide drug class, not a single chemical compound"
-      },
-      {
-        "name": "hepatitis b virus",
-        "reason": "biological viral pathogen, not a chemical compound"
-      },
-      {
-        "name": "lead compound",
-        "reason": "generic drug discovery classification term, not a specific chemical entity"
-      },
-      {
-        "name": "mxene based schottky junction nanocomposite",
-        "reason": "solid-state nanomaterial/composite, not a chemical compound"
-      },
-      {
-        "name": "nitrates",
-        "reason": "broad chemical functional class, not a specific chemical compound"
+        "name": "urospermum dalechampii leaf extract",
+        "reason": "crude plant extract"
       },
       {
         "name": "organic dust extract",
-        "reason": "complex environmental mixture, not a single chemical compound"
+        "reason": "complex environmental extract"
+      },
+      {
+        "name": "total extract of clinopodium chinense",
+        "reason": "crude plant extract"
+      },
+      {
+        "name": "breast milk",
+        "reason": "complex biological fluid"
+      },
+      {
+        "name": "milk",
+        "reason": "complex food substance"
+      },
+      {
+        "name": "yogurt",
+        "reason": "complex food substance"
+      },
+      {
+        "name": "buckwheat",
+        "reason": "plant food"
+      },
+      {
+        "name": "cooked meat",
+        "reason": "food item"
+      },
+      {
+        "name": "cooked vegetables",
+        "reason": "food item"
+      },
+      {
+        "name": "raw vegetables",
+        "reason": "food item"
+      },
+      {
+        "name": "legumes",
+        "reason": "food group"
+      },
+      {
+        "name": "maternal nutrition",
+        "reason": "physiological process or state"
+      },
+      {
+        "name": "maternal nutritional inadequacy",
+        "reason": "physiological state"
+      },
+      {
+        "name": "maternal nutritional profiles",
+        "reason": "clinical metrics profile"
+      },
+      {
+        "name": "metabolic treatment",
+        "reason": "therapeutic procedure"
+      },
+      {
+        "name": "selective internal radiotherapy",
+        "reason": "radiotherapy procedure"
+      },
+      {
+        "name": "hepatitis b virus",
+        "reason": "viral pathogen"
+      },
+      {
+        "name": "bifidobacterium animalis subsp lactis bb 12",
+        "reason": "probiotic bacterial strain"
+      },
+      {
+        "name": "bifidobacterium breve m 16v and bifidobacterium animalis subsp lactis bb 12",
+        "reason": "probiotic bacterial combination"
+      },
+      {
+        "name": "probiotics",
+        "reason": "live microorganisms"
       },
       {
         "name": "rapid alkalinization factors",
-        "reason": "family of plant peptide hormones/proteins, not a small molecule chemical compound"
+        "reason": "plant signaling peptide family"
+      },
+      {
+        "name": "tau specific antibody",
+        "reason": "protein therapeutic/antibody"
+      },
+      {
+        "name": "microplastics",
+        "reason": "physical polymer contaminant"
+      },
+      {
+        "name": "amine modified polystyrene microparticles",
+        "reason": "synthetic polymer microparticles"
+      },
+      {
+        "name": "carbon nanostructures",
+        "reason": "carbon-based nanomaterial"
+      },
+      {
+        "name": "polymeric nanostructures",
+        "reason": "synthetic polymeric nanomaterial"
+      },
+      {
+        "name": "polystyrene",
+        "reason": "synthetic polymer"
+      },
+      {
+        "name": "polyethylene",
+        "reason": "synthetic polymer"
+      },
+      {
+        "name": "mxene based schottky junction nanocomposite",
+        "reason": "inorganic composite nanomaterial"
+      },
+      {
+        "name": "astaxanthin loaded chitosan nanoparticles",
+        "reason": "nanoparticulate drug delivery formulation"
+      },
+      {
+        "name": "starch ester nanoparticle",
+        "reason": "nanoparticulate carrier"
+      },
+      {
+        "name": "starch ester nanoparticles",
+        "reason": "nanoparticulate carrier"
+      },
+      {
+        "name": "starch ester nanoparticle based pickering emulsion",
+        "reason": "emulsion formulation"
+      },
+      {
+        "name": "bilayer hydrogel",
+        "reason": "biomaterial structure"
+      },
+      {
+        "name": "curcumin chitosan microspheres",
+        "reason": "microsphere drug delivery formulation"
+      },
+      {
+        "name": "curcumin loaded lipid nanoparticle",
+        "reason": "nanoparticulate drug delivery formulation"
+      },
+      {
+        "name": "injectable hydrogel microspheres hmbtlcs",
+        "reason": "biomaterial formulation"
+      },
+      {
+        "name": "ovalbumin konjac glucomannan complex",
+        "reason": "macromolecular food hydrocolloid complex"
+      },
+      {
+        "name": "ovalbumin konjac glucomannan complexes",
+        "reason": "macromolecular food hydrocolloid complex"
+      },
+      {
+        "name": "ast mcn",
+        "reason": "carbon nanomaterial"
+      },
+      {
+        "name": "ast mcn gel",
+        "reason": "hydrogel nanomaterial formulation"
+      },
+      {
+        "name": "mg 1 2zn 0 32ca 0 25sn alloy",
+        "reason": "metal alloy"
+      },
+      {
+        "name": "lead compound",
+        "reason": "generic drug discovery term"
+      },
+      {
+        "name": "antioxidants",
+        "reason": "broad chemical functional class"
+      },
+      {
+        "name": "geroprotectors",
+        "reason": "broad therapeutic class"
+      },
+      {
+        "name": "multi targeted anti aging compound",
+        "reason": "generic descriptive term"
       },
       {
         "name": "reactive oxygen species",
-        "reason": "class of highly reactive molecules and radicals, not a specific chemical compound"
+        "reason": "broad class of reactive chemical species"
       },
       {
-        "name": "taurine based active pharmaceutical ingredient ionic liquid",
-        "reason": "complex chemical formulation/ionic liquid material, not a discrete chemical compound"
+        "name": "panax notoginseng",
+        "reason": "plant species"
+      },
+      {
+        "name": "penthorum chinense pursh",
+        "reason": "plant species"
+      },
+      {
+        "name": "astragali radix",
+        "reason": "crude herbal drug"
+      },
+      {
+        "name": "astragali radix metabolites",
+        "reason": "complex mixture of herbal metabolites"
+      },
+      {
+        "name": "fertility mix",
+        "reason": "multi-ingredient dietary supplement"
+      },
+      {
+        "name": "fertilix",
+        "reason": "brand name multi-ingredient supplement"
+      },
+      {
+        "name": "multivitamin supplement",
+        "reason": "multi-ingredient dietary supplement"
+      },
+      {
+        "name": "multiple micronutrients",
+        "reason": "broad nutritional category"
+      },
+      {
+        "name": "multi nutrient calcium vitamin d based supplement",
+        "reason": "multi-ingredient dietary supplement"
+      },
+      {
+        "name": "dna",
+        "reason": "macromolecular nucleic acid"
+      },
+      {
+        "name": "antisense oligonucleotide",
+        "reason": "class of therapeutic nucleic acids"
+      },
+      {
+        "name": "erythropoiesis stimulating agent",
+        "reason": "class of protein therapeutics"
+      },
+      {
+        "name": "onabotulinumtoxina",
+        "reason": "biological protein macromolecule"
+      },
+      {
+        "name": "qt",
+        "reason": "electrocardiographic interval measurement"
       }
     ]
   },
   "Target": {
     "clusters": [
       {
-        "canonical": "adenosine A2A receptor",
+        "canonical": "mechanistic target of rapamycin kinase",
         "members": [
-          "adenosine a2a receptor"
+          "mammalian target of rapamycin",
+          "mechanistic target of rapamycin",
+          "mechanistic target of rapamycin kinase"
         ]
       },
       {
-        "canonical": "aldehyde dehydrogenase 3 family member A2",
+        "canonical": "nuclear factor erythroid 2-related factor 2",
         "members": [
-          "aldehyde dehydrogenase 3 family member a2"
+          "nuclear factor erythroid 2 like 2",
+          "nuclear factor erythroid 2 related factor 2"
+        ]
+      },
+      {
+        "canonical": "Janus kinase 2",
+        "members": [
+          "janus kinase 2",
+          "phosphorylated janus kinase 2"
+        ]
+      },
+      {
+        "canonical": "signal transducer and activator of transcription 3",
+        "members": [
+          "signal transducer and activator of transcription 3",
+          "phosphorylated signal transducer and activator of transcription 3"
+        ]
+      },
+      {
+        "canonical": "microtubule-associated protein tau",
+        "members": [
+          "microtubule associated protein tau",
+          "phosphorylated tau protein",
+          "tau protein"
+        ]
+      },
+      {
+        "canonical": "matrix metalloproteinase 2",
+        "members": [
+          "matrix metallopeptidase 2",
+          "matrix metalloproteinase 2"
+        ]
+      },
+      {
+        "canonical": "matrix metalloproteinase 9",
+        "members": [
+          "matrix metallopeptidase 9",
+          "matrix metalloproteinase 9"
+        ]
+      },
+      {
+        "canonical": "NLR family pyrin domain containing 3",
+        "members": [
+          "nlr family pyrin domain containing 3",
+          "nlrp3 inflammasome"
+        ]
+      },
+      {
+        "canonical": "phosphoinositide 3-kinase",
+        "members": [
+          "phosphatidylinositol 3 kinase",
+          "phosphoinositide 3 kinase"
+        ]
+      },
+      {
+        "canonical": "nuclear factor kappa B",
+        "members": [
+          "nuclear factor kappa b",
+          "rela proto oncogene nf kb subunit"
+        ]
+      },
+      {
+        "canonical": "tumor necrosis factor alpha",
+        "members": [
+          "tumor necrosis factor",
+          "tumor necrosis factor alpha"
+        ]
+      },
+      {
+        "canonical": "C-reactive protein",
+        "members": [
+          "c reactive protein",
+          "high sensitivity c reactive protein"
         ]
       },
       {
@@ -118,81 +413,15 @@
         ]
       },
       {
-        "canonical": "amyloid beta",
+        "canonical": "cyclooxygenase-2",
         "members": [
-          "amyloid beta"
+          "cyclooxygenase 2"
         ]
       },
       {
-        "canonical": "B-cell lymphoma 2",
+        "canonical": "heme oxygenase-1",
         "members": [
-          "b cell lymphoma 2"
-        ]
-      },
-      {
-        "canonical": "Bcl-2-associated X protein",
-        "members": [
-          "bcl 2 associated x protein"
-        ]
-      },
-      {
-        "canonical": "Beclin 1",
-        "members": [
-          "beclin 1"
-        ]
-      },
-      {
-        "canonical": "cAMP response element-binding protein",
-        "members": [
-          "camp response element binding protein"
-        ]
-      },
-      {
-        "canonical": "cannabinoid receptor 1",
-        "members": [
-          "cannabinoid receptor 1"
-        ]
-      },
-      {
-        "canonical": "caspase-3",
-        "members": [
-          "caspase 3"
-        ]
-      },
-      {
-        "canonical": "catalase",
-        "members": [
-          "catalase"
-        ]
-      },
-      {
-        "canonical": "ceramide-1-phosphate transfer protein",
-        "members": [
-          "ceramide 1 phosphate transfer protein"
-        ]
-      },
-      {
-        "canonical": "cyclin A",
-        "members": [
-          "cyclin a"
-        ]
-      },
-      {
-        "canonical": "cyclin D3",
-        "members": [
-          "cyclin d3"
-        ]
-      },
-      {
-        "canonical": "cyclin-dependent kinase 4",
-        "members": [
-          "cyclin dependent kinase 4"
-        ]
-      },
-      {
-        "canonical": "cyclin-dependent kinase 6",
-        "members": [
-          "cyclin dependent kinase 6"
+          "heme oxygenase 1"
         ]
       },
       {
@@ -200,444 +429,581 @@
         "members": [
           "endothelial nitric oxide synthase"
         ]
-      },
-      {
-        "canonical": "fatty acid-binding protein 4",
-        "members": [
-          "fatty acid binding protein 4"
-        ]
-      },
-      {
-        "canonical": "Gasdermin D",
-        "members": [
-          "gasdermin d"
-        ]
-      },
-      {
-        "canonical": "glutathione peroxidase",
-        "members": [
-          "glutathione peroxidase"
-        ]
-      },
-      {
-        "canonical": "glycine receptor subunit alpha-2",
-        "members": [
-          "glycine receptor subunit alpha 2"
-        ]
-      },
-      {
-        "canonical": "glycogen synthase kinase 3-beta",
-        "members": [
-          "glycogen synthase kinase 3 beta"
-        ]
-      },
-      {
-        "canonical": "heat shock protein 10",
-        "members": [
-          "heat shock protein 10"
-        ]
-      },
-      {
-        "canonical": "heme oxygenase 1",
-        "members": [
-          "heme oxygenase",
-          "heme oxygenase 1"
-        ]
-      },
-      {
-        "canonical": "insulin receptor substrate 1",
-        "members": [
-          "insulin receptor substrate 1"
-        ]
-      },
-      {
-        "canonical": "integrin alpha-V beta-3",
-        "members": [
-          "integrin alpha v beta 3"
-        ]
-      },
-      {
-        "canonical": "interleukin-1 beta",
-        "members": [
-          "interleukin 1 beta"
-        ]
-      },
-      {
-        "canonical": "interleukin-33",
-        "members": [
-          "interleukin 33"
-        ]
-      },
-      {
-        "canonical": "interleukin-6",
-        "members": [
-          "interleukin 6"
-        ]
-      },
-      {
-        "canonical": "interleukin-8",
-        "members": [
-          "interleukin 8"
-        ]
-      },
-      {
-        "canonical": "Janus kinase 2",
-        "members": [
-          "janus kinase 2"
-        ]
-      },
-      {
-        "canonical": "Kelch-like ECH-associated protein 1",
-        "members": [
-          "kelch like ech associated protein 1"
-        ]
-      },
-      {
-        "canonical": "lipoxygenase",
-        "members": [
-          "lipoxygenase"
-        ]
-      },
-      {
-        "canonical": "lysophosphatidylcholine acyltransferase 3",
-        "members": [
-          "lysophosphatidylcholine acyltransferase 3"
-        ]
-      },
-      {
-        "canonical": "lysozyme",
-        "members": [
-          "lysozyme"
-        ]
-      },
-      {
-        "canonical": "mechanistic target of rapamycin kinase",
-        "members": [
-          "mechanistic target of rapamycin kinase"
-        ]
-      },
-      {
-        "canonical": "microtubule-associated proteins 1A/1B light chain 3B",
-        "members": [
-          "microtubule associated proteins 1a 1b light chain 3b"
-        ]
-      },
-      {
-        "canonical": "monoacylglycerol lipase",
-        "members": [
-          "monoacylglycerol lipase"
-        ]
-      },
-      {
-        "canonical": "Myc proto-oncogene protein",
-        "members": [
-          "myc proto oncogene"
-        ]
-      },
-      {
-        "canonical": "NLR family pyrin domain containing 3",
-        "members": [
-          "nlr family pyrin domain containing 3"
-        ]
-      },
-      {
-        "canonical": "nuclear factor erythroid 2-related factor 2",
-        "members": [
-          "nuclear factor erythroid 2 related factor 2"
-        ]
-      },
-      {
-        "canonical": "nuclear factor kappa B",
-        "members": [
-          "nuclear factor kappa b"
-        ]
-      },
-      {
-        "canonical": "P2X purinoceptor 7",
-        "members": [
-          "p2x purinoceptor 7"
-        ]
-      },
-      {
-        "canonical": "peroxisome proliferator-activated receptor alpha",
-        "members": [
-          "peroxisome proliferator activated receptor alpha"
-        ]
-      },
-      {
-        "canonical": "phosphatase and tensin homolog",
-        "members": [
-          "phosphatase and tensin homolog"
-        ]
-      },
-      {
-        "canonical": "phosphoinositide 3-kinase",
-        "members": [
-          "phosphoinositide 3 kinase"
-        ]
-      },
-      {
-        "canonical": "platelet glycoprotein 4",
-        "members": [
-          "platelet glycoprotein 4"
-        ]
-      },
-      {
-        "canonical": "poly(ADP-ribose) polymerase",
-        "members": [
-          "poly adp ribose polymerase"
-        ]
-      },
-      {
-        "canonical": "proliferating cell nuclear antigen",
-        "members": [
-          "proliferating cell nuclear antigen"
-        ]
-      },
-      {
-        "canonical": "protein CspA",
-        "members": [
-          "protein cspa"
-        ]
-      },
-      {
-        "canonical": "protein kinase B",
-        "members": [
-          "protein kinase b"
-        ]
-      },
-      {
-        "canonical": "protein kinase C alpha",
-        "members": [
-          "protein kinase c alpha"
-        ]
-      },
-      {
-        "canonical": "protein kinase C beta",
-        "members": [
-          "protein kinase c beta"
-        ]
-      },
-      {
-        "canonical": "protein kinase C delta",
-        "members": [
-          "protein kinase c delta"
-        ]
-      },
-      {
-        "canonical": "sequestosome 1",
-        "members": [
-          "sequestosome 1"
-        ]
-      },
-      {
-        "canonical": "signal transducer and activator of transcription 3",
-        "members": [
-          "signal transducer and activator of transcription 3"
-        ]
-      },
-      {
-        "canonical": "superoxide dismutase",
-        "members": [
-          "superoxide dismutase"
-        ]
-      },
-      {
-        "canonical": "transcription factor A, mitochondrial",
-        "members": [
-          "transcription factor a mitochondrial"
-        ]
-      },
-      {
-        "canonical": "tumor necrosis factor",
-        "members": [
-          "tumor necrosis factor"
-        ]
       }
     ],
     "flags": [
       {
-        "name": "anti protease",
-        "reason": "Too generic/broad functional category, not a specific macromolecular target"
+        "name": "5 methyltetrahydrofolate",
+        "reason": "Metabolite, not a macromolecular protein target"
       },
       {
-        "name": "autophagy",
-        "reason": "Biological process, not a macromolecular target"
+        "name": "astaxanthin",
+        "reason": "Carotenoid pigment/antioxidant, not a target protein"
       },
       {
-        "name": "gamma aminobutyric acid",
-        "reason": "Small molecule neurotransmitter, not a protein target"
+        "name": "calcium",
+        "reason": "Inorganic ion, not a target protein"
+      },
+      {
+        "name": "carnosine",
+        "reason": "Dipeptide metabolite, not a target protein"
+      },
+      {
+        "name": "estrogen",
+        "reason": "Steroid hormone, not a target protein"
+      },
+      {
+        "name": "folate",
+        "reason": "Vitamin cofactor, not a target protein"
       },
       {
         "name": "glutathione",
-        "reason": "Small molecule metabolite/antioxidant, not a macromolecular target"
+        "reason": "Tripeptide antioxidant, not a target protein"
       },
       {
-        "name": "immune system",
-        "reason": "Physiological system, not a molecular target"
+        "name": "hydrogen peroxide",
+        "reason": "Reactive oxygen species, not a target protein"
       },
       {
-        "name": "intracellular calcium concentration",
-        "reason": "Physiological measurement/cellular state, not a molecular target"
+        "name": "hydrogen sulfide",
+        "reason": "Gaseous signaling molecule, not a target protein"
       },
       {
-        "name": "liver enzymes",
-        "reason": "Generic clinical/biological term for a group of proteins, not a specific target entity"
+        "name": "iodine",
+        "reason": "Chemical element, not a target protein"
       },
       {
-        "name": "macrophages",
-        "reason": "Immune cell type, not a molecular target"
+        "name": "lipid",
+        "reason": "Broad biomolecule class, not a target protein"
       },
       {
-        "name": "microglia",
-        "reason": "Glial cell type, not a molecular target"
+        "name": "malondialdehyde",
+        "reason": "Lipid peroxidation byproduct/biomarker, not a target protein"
       },
       {
-        "name": "mitochondrial oxidative phosphorylation",
-        "reason": "Biological process/pathway, not a molecular target"
-      },
-      {
-        "name": "mitochondrial respiration",
-        "reason": "Biological process, not a molecular target"
-      },
-      {
-        "name": "muscle protein synthesis",
-        "reason": "Biological/physiological process, not a macromolecular target"
+        "name": "maresin 1",
+        "reason": "Lipid mediator, not a target protein"
       },
       {
         "name": "nitric oxide",
-        "reason": "Small gaseous signaling molecule, not a protein target"
+        "reason": "Gaseous signaling molecule, not a target protein"
+      },
+      {
+        "name": "polysaccharide",
+        "reason": "Carbohydrate macromolecule, not a target protein"
+      },
+      {
+        "name": "s adenosyl l methionine",
+        "reason": "Metabolite cofactor, not a target protein"
+      },
+      {
+        "name": "s adenosylmethionine",
+        "reason": "Metabolite cofactor, not a target protein"
+      },
+      {
+        "name": "taurine",
+        "reason": "Amino sulfonic acid, not a target protein"
+      },
+      {
+        "name": "thymine",
+        "reason": "Nucleobase, not a target protein"
+      },
+      {
+        "name": "thyroxine",
+        "reason": "Thyroid hormone, not a target protein"
+      },
+      {
+        "name": "unmetabolized folic acid",
+        "reason": "Vitamin compound, not a target protein"
+      },
+      {
+        "name": "vitamin d",
+        "reason": "Secosteroid hormone/vitamin, not a target protein"
+      },
+      {
+        "name": "total cholesterol",
+        "reason": "Lipid metabolic measurement, not a protein target"
+      },
+      {
+        "name": "antioxidant response element",
+        "reason": "DNA regulatory sequence, not a target protein"
+      },
+      {
+        "name": "apoptotic regulators",
+        "reason": "Broad functional protein class, not a specific target"
+      },
+      {
+        "name": "autophagy",
+        "reason": "Cellular physiological process, not a specific protein target"
+      },
+      {
+        "name": "bcl2 associated x protein to b cell lymphoma 2 ratio",
+        "reason": "A ratio of two protein levels, not a single target entity"
+      },
+      {
+        "name": "cell membrane",
+        "reason": "Subcellular structure, not a specific protein target"
+      },
+      {
+        "name": "cell wall",
+        "reason": "Microbial structural component, not a specific protein target"
+      },
+      {
+        "name": "dubosiella",
+        "reason": "Bacterial genus, not a specific molecular target"
+      },
+      {
+        "name": "endothelial function",
+        "reason": "Physiological phenotype, not a molecular target"
+      },
+      {
+        "name": "enzymes",
+        "reason": "Broad functional class of proteins, too generic"
+      },
+      {
+        "name": "extracellular matrix receptor interaction pathway",
+        "reason": "KEGG biological pathway, not a specific target"
+      },
+      {
+        "name": "extracellular matrix remodeling pathway",
+        "reason": "Biological pathway, not a specific target"
+      },
+      {
+        "name": "global dna methylation",
+        "reason": "Epigenetic process/state, not a target protein"
+      },
+      {
+        "name": "group 2 innate lymphoid cell activation",
+        "reason": "Cellular physiological process, not a target protein"
+      },
+      {
+        "name": "immune cell function",
+        "reason": "Broad physiological process, not a target protein"
+      },
+      {
+        "name": "immune system",
+        "reason": "Physiological system, not a target protein"
+      },
+      {
+        "name": "intracellular calcium concentration",
+        "reason": "Physiological metric, not a molecular target"
+      },
+      {
+        "name": "lipid energy reserves",
+        "reason": "Physiological state, not a molecular target"
+      },
+      {
+        "name": "liver enzymes",
+        "reason": "Broad clinical biomarker group, not a specific target"
+      },
+      {
+        "name": "macrophages",
+        "reason": "Cell type, not a molecular target"
+      },
+      {
+        "name": "methionine cycle",
+        "reason": "Metabolic pathway, not a molecular target"
+      },
+      {
+        "name": "microglia",
+        "reason": "Cell type, not a molecular target"
+      },
+      {
+        "name": "mitochondria",
+        "reason": "Subcellular organelle, not a specific protein target"
+      },
+      {
+        "name": "mitochondrial oxidative phosphorylation",
+        "reason": "Metabolic process/pathway, not a molecular target"
+      },
+      {
+        "name": "mitochondrial respiration",
+        "reason": "Cellular physiological process, not a molecular target"
+      },
+      {
+        "name": "mitophagy",
+        "reason": "Cellular organelle degradation process, not a specific target"
+      },
+      {
+        "name": "muscle protein synthesis",
+        "reason": "Cellular macromolecular process, not a molecular target"
       },
       {
         "name": "non photochemical quenching",
-        "reason": "Physiological process, not a molecular target"
+        "reason": "Plant physiological process, not a molecular target"
+      },
+      {
+        "name": "nutrient transporters",
+        "reason": "Broad functional protein class, too generic"
       },
       {
         "name": "plasma membrane receptor",
-        "reason": "Generic cell component descriptor, not a specific target"
+        "reason": "Broad cellular protein class, too generic"
+      },
+      {
+        "name": "platelet activity",
+        "reason": "Cellular process/function, not a molecular target"
+      },
+      {
+        "name": "protein",
+        "reason": "Extremely generic molecular class, not a specific target"
+      },
+      {
+        "name": "protein synthesis",
+        "reason": "Cellular metabolic process, not a molecular target"
+      },
+      {
+        "name": "reactive carbonyl species",
+        "reason": "Reactive chemical family, not a protein target"
       },
       {
         "name": "reactive oxygen species",
-        "reason": "Broad class of reactive molecules, not a specific protein target"
+        "reason": "Reactive chemical family, not a protein target"
+      },
+      {
+        "name": "retinol metabolism pathway",
+        "reason": "Metabolic pathway, not a molecular target"
+      },
+      {
+        "name": "senescent cells",
+        "reason": "Cellular phenotype/population, not a molecular target"
+      },
+      {
+        "name": "small gtpases",
+        "reason": "Protein superfamily, too generic"
+      },
+      {
+        "name": "synaptic plasticity",
+        "reason": "Neurological physiological process, not a molecular target"
+      },
+      {
+        "name": "t helper cell polarization",
+        "reason": "Immunological cellular process, not a molecular target"
+      },
+      {
+        "name": "thiobarbituric acid reactive substances",
+        "reason": "Assay metric of lipid peroxidation, not a target protein"
+      },
+      {
+        "name": "tight junction proteins",
+        "reason": "Protein family, too generic to be a specific target"
+      },
+      {
+        "name": "total antioxidant capacity",
+        "reason": "Physiological/assay measurement, not a protein target"
+      },
+      {
+        "name": "transforming growth factor beta signaling pathway",
+        "reason": "Signal transduction pathway, not a molecular target"
+      },
+      {
+        "name": "transmethylation",
+        "reason": "Chemical/metabolic process, not a molecular target"
+      },
+      {
+        "name": "transporter mediated efflux activity",
+        "reason": "Biological transport activity, not a target protein"
+      },
+      {
+        "name": "unclassified muribaculaceae",
+        "reason": "Bacterial taxon, not a molecular target"
+      },
+      {
+        "name": "uncultured bacteroidales bacterium",
+        "reason": "Bacterial taxon, not a molecular target"
       },
       {
         "name": "violaxanthin de epoxidation",
-        "reason": "Biological process/reaction, not a target protein"
+        "reason": "Biochemical process/reaction, not a target protein"
+      },
+      {
+        "name": "viral protease",
+        "reason": "Broad functional class of viral enzymes, too generic"
+      },
+      {
+        "name": "wnt",
+        "reason": "Secreted signaling glycoprotein family, too generic"
       },
       {
         "name": "xanthophyll flux",
-        "reason": "Metabolic process, not a macromolecular target"
+        "reason": "Metabolic process, not a molecular target"
+      },
+      {
+        "name": "dna duplex containing an abasic site opposite thymine",
+        "reason": "Nucleic acid substrate structure, not a protein target"
       }
     ]
   },
   "Effect": {
     "clusters": [
       {
-        "canonical": "autophagy",
+        "canonical": "metabolic dysfunction associated steatotic liver disease",
         "members": [
-          "autophagy",
-          "autophagic flux"
+          "metabolic dysfunction associated steatotic liver disease",
+          "non alcoholic fatty liver disease"
         ]
       },
       {
-        "canonical": "cardiac injury",
+        "canonical": "bioaccessibility of astaxanthin",
         "members": [
-          "cardiac injury",
-          "cardiac damage"
+          "astaxanthin bioaccessibility",
+          "bioaccessibility of astaxanthin"
         ]
       },
       {
-        "canonical": "cognitive decline",
+        "canonical": "astaxanthin stability",
         "members": [
-          "cognitive decline",
-          "memory deficits"
+          "astaxanthin retention",
+          "astaxanthin stability",
+          "retention rate of astaxanthin"
         ]
       },
       {
-        "canonical": "copper homeostasis",
+        "canonical": "depression",
         "members": [
-          "copper homeostasis",
-          "intracellular copper levels"
+          "depression",
+          "depressive like behaviors",
+          "major depressive disorder"
         ]
       },
       {
-        "canonical": "feather structural development",
+        "canonical": "diabetic neuropathy",
         "members": [
-          "feather structural development",
-          "feather structure"
+          "diabetic neuropathy",
+          "diabetic peripheral neuropathy"
         ]
       },
       {
-        "canonical": "feed conversion ratio",
+        "canonical": "fibroblast to myofibroblast transition",
         "members": [
-          "feed conversion ratio",
-          "feed utilization"
+          "differentiation of fibroblasts into myofibroblasts",
+          "fibroblast to myofibroblast transition"
         ]
       },
       {
-        "canonical": "glycemic control",
+        "canonical": "dysbiosis",
         "members": [
-          "glycemic control",
-          "glucose dysregulation",
-          "glucose handling"
+          "dysbiosis",
+          "gut dysbiosis",
+          "gut microbiota dysbiosis"
+        ]
+      },
+      {
+        "canonical": "estrous cycle",
+        "members": [
+          "estrous cycle",
+          "estrous cyclicity"
+        ]
+      },
+      {
+        "canonical": "immune function",
+        "members": [
+          "immune function",
+          "immunity"
         ]
       },
       {
         "canonical": "inflammation",
         "members": [
           "inflammation",
-          "inflammatory infiltration"
+          "inflammatory damage",
+          "inflammatory response"
         ]
       },
       {
-        "canonical": "oxidative stress",
+        "canonical": "intestinal barrier integrity",
         "members": [
-          "oxidative stress",
-          "oxidative damage"
+          "intestinal barrier function",
+          "intestinal barrier integrity"
         ]
       },
       {
-        "canonical": "plant growth",
+        "canonical": "urolithiasis",
         "members": [
-          "plant growth",
-          "plant development"
+          "kidney stone disease",
+          "urolithiasis"
         ]
       },
       {
-        "canonical": "rhipicephalus microplus infestation",
+        "canonical": "neurodegenerative disease",
         "members": [
-          "rhipicephalus microplus infestation",
-          "rhipicephalus microplus larval count"
+          "neurodegeneration",
+          "neurodegenerative disease"
         ]
       },
       {
-        "canonical": "tumor growth",
+        "canonical": "pickering emulsion stability",
         "members": [
-          "tumor volume",
-          "tumor weight"
+          "pickering emulsion stability",
+          "pickering emulsion storage stability"
+        ]
+      },
+      {
+        "canonical": "tau protein aggregation",
+        "members": [
+          "tau aggregation",
+          "tau protein aggregation"
+        ]
+      },
+      {
+        "canonical": "vacuolation",
+        "members": [
+          "vacuolation",
+          "vacuolisation"
+        ]
+      },
+      {
+        "canonical": "total cholesterol",
+        "members": [
+          "total cholesterol",
+          "serum total cholesterol"
+        ]
+      },
+      {
+        "canonical": "antioxidant capacity",
+        "members": [
+          "antioxidant activity",
+          "antioxidant capacity"
+        ]
+      },
+      {
+        "canonical": "cognitive function",
+        "members": [
+          "cognitive behavioral functioning",
+          "cognitive function",
+          "cognitive performance"
+        ]
+      },
+      {
+        "canonical": "amyloid beta pathology",
+        "members": [
+          "amyloid beta pathology",
+          "amyloid beta plaques"
+        ]
+      },
+      {
+        "canonical": "ovarian aging",
+        "members": [
+          "ovarian aging",
+          "ovarian senescence"
+        ]
+      },
+      {
+        "canonical": "bone health",
+        "members": [
+          "bone health",
+          "skeletal health"
         ]
       }
     ],
     "flags": [
       {
+        "name": "4 hydroxy 2 nonenal",
+        "reason": "Chemical compound, not a biological Effect."
+      },
+      {
+        "name": "8 hydroxy 2 deoxyguanosine",
+        "reason": "Chemical biomarker of DNA damage, not a biological Effect."
+      },
+      {
+        "name": "aspartate aminotransferase",
+        "reason": "Enzyme protein, not a biological Effect."
+      },
+      {
+        "name": "bilirubin",
+        "reason": "Chemical compound, not a biological Effect."
+      },
+      {
+        "name": "estradiol",
+        "reason": "Hormone, not a biological Effect."
+      },
+      {
+        "name": "interleukin 1 beta",
+        "reason": "Cytokine protein, not a biological Effect."
+      },
+      {
+        "name": "interleukin 6",
+        "reason": "Cytokine protein, not a biological Effect."
+      },
+      {
+        "name": "tumor necrosis factor alpha",
+        "reason": "Cytokine protein, not a biological Effect."
+      },
+      {
         "name": "lethal concentration 50",
-        "reason": "Lethal concentration 50 (LC50) is a toxicological measurement metric, not a biological effect."
+        "reason": "Toxicological measurement metric, not a biological Effect."
       },
       {
         "name": "malondialdehyde",
-        "reason": "Malondialdehyde is a chemical compound and biomarker of oxidative stress, not a biological effect."
+        "reason": "Chemical biomarker of lipid peroxidation, not a biological Effect."
       },
       {
-        "name": "nitroblue tetrazolium activity",
-        "reason": "Nitroblue tetrazolium activity is an experimental assay measurement rather than an physiological effect."
+        "name": "intermolecular excited state proton transfer",
+        "reason": "Physical chemical process, not a biomedical Effect."
+      },
+      {
+        "name": "very low density lipoprotein",
+        "reason": "Lipoprotein particle, not a biological Effect."
+      },
+      {
+        "name": "dentin tubule penetration of calcium silicate based root canal sealer",
+        "reason": "Highly specific dental engineering parameter, not a biological Effect."
       },
       {
         "name": "residual medicament amount",
-        "reason": "Residual medicament amount is a physical measurement of leftover substance, not a biological effect."
+        "reason": "Technical experimental measurement, not a biological Effect."
       },
       {
-        "name": "tricarboxylic acid cycle",
-        "reason": "The tricarboxylic acid cycle is a metabolic pathway, not a phenotypic or physiological effect."
+        "name": "unmetabolized folic acid concentration",
+        "reason": "Analytical concentration measurement, not a biological Effect."
+      },
+      {
+        "name": "low density lipoprotein cholesterol",
+        "reason": "Lipoprotein/lipid measurement, not a biological Effect."
+      },
+      {
+        "name": "triglyceride",
+        "reason": "Chemical lipid, not a biological Effect."
+      },
+      {
+        "name": "triglycerides",
+        "reason": "Chemical lipid, not a biological Effect."
+      },
+      {
+        "name": "length of vane 1 of the eighth primary feather",
+        "reason": "Highly specific avian morphological measurement, not a biological Effect."
+      },
+      {
+        "name": "calamus thickness",
+        "reason": "Avian anatomical measurement, not a biological Effect."
+      },
+      {
+        "name": "feather weight",
+        "reason": "Avian anatomical measurement, not a biological Effect."
+      },
+      {
+        "name": "primary follicle diameter",
+        "reason": "Ovarian histological measurement, not a biological Effect."
+      },
+      {
+        "name": "hepatopancreatic b cell prevalence",
+        "reason": "Histological cell count measurement, not a biological Effect."
+      },
+      {
+        "name": "hepatopancreatic f cell prevalence",
+        "reason": "Histological cell count measurement, not a biological Effect."
+      },
+      {
+        "name": "hepatopancreas pyridoxine concentration",
+        "reason": "Nutritional concentration measurement, not a biological Effect."
+      },
+      {
+        "name": "transcutaneous bilirubin",
+        "reason": "Clinical diagnostic measurement, not a biological Effect."
+      },
+      {
+        "name": "homeostatic model assessment of insulin resistance",
+        "reason": "Clinical diagnostic formula/index, not a biological Effect."
       }
     ]
   }

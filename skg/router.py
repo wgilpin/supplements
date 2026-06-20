@@ -47,6 +47,7 @@ Pick exactly one `query` type:
 
 Extract `entity` (for non-intersection queries):
 - If a name in the relevant list below clearly matches what the user means, return that EXACT name (expand abbreviations to the matching full name, e.g. "GABA" -> the matching receptor name in the list).
+- Do not match a specific chemical variant or derivative (e.g., "methyl folate", "N-acetyl cysteine") to a generic or different compound name in the list (e.g., "folate", "cysteine"). If the user specifies a variant not in the list, return their raw term.
 - Otherwise return the user's own term.
 - Use null for a contradictions question with no specific effect, or for intersection queries.
 

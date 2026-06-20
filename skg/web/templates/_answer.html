@@ -10,14 +10,40 @@
 <div class="msg bot">
 {% if candidate_ingestion %}
   <div class="card ingestion-prompt" style="margin-bottom: 0.8rem;">
-    <p>I don't have claims for <strong>{{ candidate_ingestion }}</strong> in the database yet. Would you like to fetch and ingest it live?</p>
-    <form hx-post="/ingest" hx-target="closest .ingestion-prompt" hx-swap="outerHTML" class="ingest-form" hx-disabled-elt="find button">
-      <input type="hidden" name="supplement" value="{{ candidate_ingestion }}">
-      <button type="submit" class="btn btn-primary">Yes, Ingest {{ candidate_ingestion }}</button>
-      <span class="htmx-indicator ingest-spinner" style="margin-left: 0.5rem; color: var(--muted); font-size: 0.9rem;">
-        Ingesting... (takes ~1 minute)
-      </span>
-    </form>
+    {% if loose_match_resolved %}
+      <p>I matched <strong>{{ candidate_ingestion }}</strong> to <strong>{{ loose_match_resolved }}</strong>. Did you mean <strong>{{ loose_match_resolved }}</strong>, or would you like to fetch and ingest <strong>{{ candidate_ingestion }}</strong> specifically?</p>
+      <div class="ingest-actions" style="display: flex; gap: 0.5rem; align-items: center; flex-wrap: wrap;">
+        <form hx-post="/ingest" hx-target="closest .ingestion-prompt" hx-swap="outerHTML" class="ingest-form" hx-disabled-elt="find button" style="margin: 0; display: flex; align-items: center; gap: 0.5rem;">
+          <input type="hidden" name="supplement" value="{{ candidate_ingestion }}">
+          <button type="submit" class="btn btn-primary">Yes, Ingest {{ candidate_ingestion }}</button>
+          <span class="htmx-indicator ingest-spinner" style="color: var(--muted); font-size: 0.9rem;">
+            Ingesting... (takes ~1 minute)
+          </span>
+        </form>
+        {% if loose_match_resolved_ingested %}
+          <button type="button" class="btn btn-secondary" onclick="this.closest('.ingestion-prompt').remove()">
+            No, I meant {{ loose_match_resolved }}
+          </button>
+        {% else %}
+          <form hx-post="/ingest" hx-target="closest .ingestion-prompt" hx-swap="outerHTML" class="ingest-form" hx-disabled-elt="find button" style="margin: 0; display: flex; align-items: center; gap: 0.5rem;">
+            <input type="hidden" name="supplement" value="{{ loose_match_resolved }}">
+            <button type="submit" class="btn btn-secondary">No, Ingest {{ loose_match_resolved }}</button>
+            <span class="htmx-indicator ingest-spinner" style="color: var(--muted); font-size: 0.9rem;">
+              Ingesting... (takes ~1 minute)
+            </span>
+          </form>
+        {% endif %}
+      </div>
+    {% else %}
+      <p>I don't have claims for <strong>{{ candidate_ingestion }}</strong> in the database yet. Would you like to fetch and ingest it live?</p>
+      <form hx-post="/ingest" hx-target="closest .ingestion-prompt" hx-swap="outerHTML" class="ingest-form" hx-disabled-elt="find button">
+        <input type="hidden" name="supplement" value="{{ candidate_ingestion }}">
+        <button type="submit" class="btn btn-primary">Yes, Ingest {{ candidate_ingestion }}</button>
+        <span class="htmx-indicator ingest-spinner" style="margin-left: 0.5rem; color: var(--muted); font-size: 0.9rem;">
+          Ingesting... (takes ~1 minute)
+        </span>
+      </form>
+    {% endif %}
   </div>
 {% endif %}
 

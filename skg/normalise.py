@@ -31,10 +31,17 @@ def load_synonyms(path: Path | None = None) -> dict[str, str]:
     return json.loads(path.read_text())
 
 
+CUSTOM_SYNONYMS = {
+    "vitamin d": "vitamin d3",
+}
+
+
 def canonical_compound(name: str, synonyms: dict[str, str]) -> str:
     """Resolve a compound name to its canonical form via the synonym dict,
     falling back to the normalised string if unknown."""
     norm = normalise_str(name)
+    if norm in CUSTOM_SYNONYMS:
+        return CUSTOM_SYNONYMS[norm]
     return synonyms.get(norm, norm)
 
 

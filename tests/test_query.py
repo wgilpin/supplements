@@ -313,3 +313,26 @@ def test_dispatch_intersection(conn):
     rows = query.dispatch(conn, req)
     assert len(rows) == 2
     assert {r.source_pmid for r in rows} == {"p1", "p2"}
+
+
+def test_expand_compound_names(tmp_path):
+    c = graph.connect(tmp_path / "test_expand.kuzu")
+    graph.init_schema(c)
+    
+    c.execute("MERGE (c:Compound {name: 'vitamin d'})")
+    c.execute("MERGE (c:Compound {name: 'vitamin d3'})")
+    
+    c.execute("MERGE (cl:Claim {id: 'cl1', direction: 'decreases', dose_text: '', cohort_text: '', model: 'human RCT', evidence_score: 5, source_pmid: 'p1', source_quote: 'Vitamin D reduced anxiety.'})")
+    c.execute("MATCH (c:Compound {name: 'vitamin d'}), (cl:Claim {id: 'cl1'}) MERGE (c)-[:HAS_CLAIM]->(cl)")
+    
+    c.execute("MERGE (cl:Claim {id: 'cl2', direction: 'decreases', dose_text: '', cohort_text: '', model: 'human RCT', evidence_score: 5, source_pmid: 'p2', source_quote: 'Vitamin D3 reduced depression.'})")
+    c.execute("MATCH (c:Compound {name: 'vitamin d3'}), (cl:Claim {id: 'cl2'}) MERGE (c)-[:HAS_CLAIM]->(cl)")
+    
+    rows = query.claims_for_compound(c, "vitamin d3")
+    assert len(rows) == 2
+    assert {r.compound for r in rows} == {"vitamin d", "vitamin d3"}
+    
+    rows2 = query.claims_for_compound(c, "vitamin d")
+    assert len(rows2) == 2
+    assert {r.compound for r in rows2} == {"vitamin d", "vitamin d3"}
+

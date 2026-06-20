@@ -89,9 +89,23 @@ def ask(request: Request, q: Annotated[str, Form()]) -> HTMLResponse:
 
     # Check if this query is about a compound that is missing from the database
     candidate_ingestion = None
+    loose_match_resolved = None
+    loose_match_resolved_ingested = False
     if req.query in ("compound", "bridge") and req.entity:
         resolved = query.resolve_entity(conn, req.entity, "compound")
-        if not resolved or not is_compound_ingested(resolved):
+        if resolved:
+            from ..normalise import load_synonyms, normalise_str
+            synonyms = load_synonyms()
+            norm_entity = normalise_str(req.entity)
+            norm_resolved = normalise_str(resolved)
+            is_exact_or_syn = (norm_resolved == norm_entity) or (synonyms.get(norm_entity) == resolved)
+            if not is_exact_or_syn:
+                candidate_ingestion = req.entity
+                loose_match_resolved = resolved
+                loose_match_resolved_ingested = is_compound_ingested(resolved)
+            elif not is_compound_ingested(resolved):
+                candidate_ingestion = req.entity
+        else:
             candidate_ingestion = req.entity
     elif req.query == "intersection" and req.entities:
         for ent in req.entities:
@@ -121,7 +135,9 @@ def ask(request: Request, q: Annotated[str, Form()]) -> HTMLResponse:
             "req": req,
             "results": display,
             "summary": summary,
-            "candidate_ingestion": candidate_ingestion
+            "candidate_ingestion": candidate_ingestion,
+            "loose_match_resolved": loose_match_resolved,
+            "loose_match_resolved_ingested": loose_match_resolved_ingested
         },
     )
 
@@ -130,11 +146,22 @@ def ask(request: Request, q: Annotated[str, Form()]) -> HTMLResponse:
 async def ingest(request: Request, supplement: Annotated[str, Form()]) -> HTMLResponse:
     conn = kuzu.Connection(request.app.state.db)
     resolved = query.resolve_entity(conn, supplement, "compound")
+    
     if not resolved or not is_compound_ingested(resolved):
         logger.info("Starting live ingestion for %r", supplement)
         try:
             from ..pipeline import ingest_supplement_async
             await ingest_supplement_async(conn, supplement)
+            
+            # Post-ingestion canonicalisation pass (principled deduplication)
+            try:
+                from ..canonicalise import propose, apply_map
+                logger.info("Running automatic post-ingestion canonicalisation pass")
+                proposal = propose(conn)
+                apply_map(conn, proposal)
+            except Exception as e:
+                logger.warning("Post-ingestion canonicalisation failed: %s", e)
+                
             resolved = query.resolve_entity(conn, supplement, "compound")
         except Exception as e:
             logger.exception("Failed to ingest %r", supplement)
@@ -160,4 +187,24 @@ async def ingest(request: Request, supplement: Annotated[str, Form()]) -> HTMLRe
     else:
         return HTMLResponse(
             content=f"<div class='alert alert-warning'>Ingestion completed, but no claims could be extracted for '<strong>{supplement}</strong>' (no abstracts found or no claims matched the criteria).</div>"
+        )
+
+
+@app.post("/canonicalise", response_class=HTMLResponse)
+async def canonicalise_endpoint(request: Request) -> HTMLResponse:
+    conn = kuzu.Connection(request.app.state.db)
+    logger.info("Starting manual canonicalisation/deduplication pass")
+    try:
+        from ..canonicalise import propose, apply_map
+        proposal = propose(conn)
+        merged = apply_map(conn, proposal)
+        logger.info("Manual canonicalisation complete: %s", merged)
+        summary = ", ".join(f"{k}: {v} merged" for k, v in merged.items())
+        return HTMLResponse(
+            content=f"<div class='alert alert-success'>Graph deduplicated successfully ({summary})</div>"
+        )
+    except Exception as e:
+        logger.exception("Manual canonicalisation failed")
+        return HTMLResponse(
+            content=f"<div class='alert alert-danger'>Deduplication failed: {e}</div>"
         )
