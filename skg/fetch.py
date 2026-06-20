@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import json
+import logging
 import time
 import xml.etree.ElementTree as ET
 from pathlib import Path
@@ -10,6 +11,8 @@ from pathlib import Path
 import httpx
 
 from . import config
+
+logger = logging.getLogger(__name__)
 
 
 def _params(extra: dict) -> dict:
@@ -77,5 +80,5 @@ def fetch_supplement(term: str, retmax: int | None = None,
         for rec in fetched:
             (cache_dir / f"{rec['pmid']}.json").write_text(json.dumps(rec, indent=2))
 
-    print(f"  {term}: {len(pmids)} PMIDs ({len(cached)} cached, {len(fetched)} fetched)")
+    logger.info("%s: %d PMIDs (%d cached, %d fetched)", term, len(pmids), len(cached), len(fetched))
     return cached + fetched

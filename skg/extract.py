@@ -4,6 +4,7 @@ from __future__ import annotations
 
 import asyncio
 import difflib
+import logging
 import re
 import unicodedata
 
@@ -12,6 +13,8 @@ from google.genai.errors import APIError
 
 from . import config
 from .schema import Claim, is_meaningful
+
+logger = logging.getLogger(__name__)
 
 PROMPT = """You extract biological interaction claims from a research abstract.
 
@@ -182,7 +185,7 @@ async def extract_claims_async(abstract: str) -> list[Claim]:
                     continue
                 quote = c.source_quote.strip()
                 if quote and not fuzzy_substring_match(normalize_text(quote), norm_abstract):
-                    print(f"  dropped non-verbatim quote: {c.source_quote[:60]!r}...")
+                    logger.info("dropped non-verbatim quote: %r...", c.source_quote[:60])
                     continue
                 if quote:
                     # Store the abstract's own text rather than the model's echo, which
@@ -193,9 +196,10 @@ async def extract_claims_async(abstract: str) -> list[Claim]:
         except (asyncio.TimeoutError, TimeoutError):
             if attempt < max_retries - 1:
                 sleep_time = (2 ** attempt) + 1
-                print(
-                    f"  Request exceeded {config.GEMINI_REQUEST_TIMEOUT:.0f}s timeout. "
-                    f"Retrying in {sleep_time}s..."
+                logger.warning(
+                    "Request exceeded %.0fs timeout. Retrying in %ds...",
+                    config.GEMINI_REQUEST_TIMEOUT,
+                    sleep_time,
                 )
                 await asyncio.sleep(sleep_time)
                 continue
@@ -204,14 +208,14 @@ async def extract_claims_async(abstract: str) -> list[Claim]:
             is_transient = e.code in (429, 500, 503, 504) or "limit" in str(e).lower() or "exhausted" in str(e).lower()
             if is_transient and attempt < max_retries - 1:
                 sleep_time = (2 ** attempt) + 1
-                print(f"  Transient API error ({e}). Retrying in {sleep_time}s...")
+                logger.warning("Transient API error (%s). Retrying in %ds...", e, sleep_time)
                 await asyncio.sleep(sleep_time)
                 continue
             raise
         except Exception as e:
             if attempt < max_retries - 1:
                 sleep_time = (2 ** attempt) + 1
-                print(f"  Unexpected error ({e}). Retrying in {sleep_time}s...")
+                logger.warning("Unexpected error (%s). Retrying in %ds...", e, sleep_time)
                 await asyncio.sleep(sleep_time)
                 continue
             raise
@@ -231,13 +235,13 @@ async def extract_claims_batch(records: list[dict]) -> dict[str, list[Claim]]:
         if delay > 0:
             await asyncio.sleep(delay)
 
-        print(f"  Starting extraction for PMID {pmid} (stagger delay: {delay:.1f}s)...")
+        logger.info("Starting extraction for PMID %s (stagger delay: %.1fs)...", pmid, delay)
         try:
             claims = await extract_claims_async(abstract)
             results_map[pmid] = claims
-            print(f"  Finished extraction for PMID {pmid}: found {len(claims)} claims")
+            logger.info("Finished extraction for PMID %s: found %d claims", pmid, len(claims))
         except Exception as e:
-            print(f"  Error extracting PMID {pmid}: {e}")
+            logger.error("Error extracting PMID %s: %s", pmid, e)
             results_map[pmid] = []
 
     tasks = [worker(i, rec) for i, rec in enumerate(records)]

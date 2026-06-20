@@ -42,6 +42,10 @@ def main() -> int:
     )
     args = parser.parse_args()
 
+    from .logging_config import setup_logging
+
+    setup_logging()
+
     # Resolve PMID sets first so we can report the blast radius before touching anything.
     pmids_by_supplement: dict[str, list[str]] = {}
     for name in args.supplements:
