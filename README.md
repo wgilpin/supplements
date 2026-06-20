@@ -41,6 +41,22 @@ uv run python -m skg.synonyms
 The graph lands in `data/kg.kuzu` (gitignored). Abstracts are cached, so re-runs
 skip PubMed and only re-extract.
 
+## Re-ingest a supplement
+
+Extracted claims are also cached per PMID in `data/claims/`, so a normal re-run
+replays them instead of re-extracting. To force a fresh extraction (e.g. to pick up
+extractor fixes), use `reingest`: it clears the supplement's cached claims, then runs
+the pipeline. Graph writes upsert on `claim_id`, so this overwrites changed claims in
+place, adds any newly-recovered ones, and never duplicates.
+
+```bash
+uv run reingest astaxanthin
+uv run reingest astaxanthin curcumin --yes   # -y/--yes skips the confirmation prompt
+```
+
+Costs one Gemini extraction pass per supplement and writes the live `data/kg.kuzu`.
+Kùzu is single-writer — make sure no other pipeline or session is writing the DB first.
+
 ## Deduplicate entities (spec §5.4)
 
 Biological synonym merges need domain knowledge, so the LLM proposes them and you

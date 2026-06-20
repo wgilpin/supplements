@@ -5,6 +5,7 @@ from __future__ import annotations
 import asyncio
 import difflib
 import re
+import unicodedata
 
 from google import genai
 from google.genai.errors import APIError
@@ -77,10 +78,17 @@ def _get_client() -> genai.Client:
 
 def normalize_text(text: str) -> str:
     """Normalize text by converting to lowercase, replacing Greek letters with names,
-    replacing punctuation with spaces, and collapsing multiple spaces.
+    stripping combining marks, replacing punctuation with spaces, and collapsing spaces.
+
+    Gemini sometimes corrupts Greek letters in source quotes, echoing e.g. ``TNF-α`` back
+    as ``TNF-`` + a stray combining mark (U+0311) instead of U+03B1. Stripping combining
+    marks (Unicode category Mn) neutralises that corruption so a quote that is otherwise
+    verbatim still matches the abstract.
     """
     t = text.lower()
     t = t.replace("γ", "gamma").replace("α", "alpha").replace("β", "beta")
+    t = unicodedata.normalize("NFD", t)
+    t = "".join(c for c in t if unicodedata.category(c) != "Mn")
     t = re.sub(r"[^\w\s]", " ", t)
     return " ".join(t.split())
 
@@ -98,7 +106,10 @@ def fuzzy_substring_match(sub: str, text: str, threshold: float = 0.85) -> bool:
         if w not in text:
             return False
 
-    matcher = difflib.SequenceMatcher(None, sub, text)
+    # autojunk=False is essential here: on a long abstract its heuristic treats common
+    # characters (spaces, frequent letters) as junk and skips them, which misaligns the
+    # longest-match anchor and collapses the ratio for quotes that are genuinely present.
+    matcher = difflib.SequenceMatcher(None, sub, text, autojunk=False)
     match = matcher.find_longest_match(0, len(sub), 0, len(text))
     if match.size == 0:
         return False
@@ -108,8 +119,41 @@ def fuzzy_substring_match(sub: str, text: str, threshold: float = 0.85) -> bool:
     end = min(len(text), match.b + len(sub) - match.a)
     candidate = text[start:end]
 
-    ratio = difflib.SequenceMatcher(None, sub, candidate).ratio()
+    ratio = difflib.SequenceMatcher(None, sub, candidate, autojunk=False).ratio()
     return ratio >= threshold
+
+
+def _strip_combining_marks(text: str) -> str:
+    """Drop Unicode combining marks while preserving case, spacing, and punctuation."""
+    decomposed = unicodedata.normalize("NFD", text)
+    return unicodedata.normalize(
+        "NFC", "".join(c for c in decomposed if unicodedata.category(c) != "Mn")
+    )
+
+
+def recover_quote(quote: str, abstract: str) -> str:
+    """Return the abstract's own text for an already-verified quote.
+
+    Gemini occasionally corrupts characters in ``source_quote`` — most often Greek
+    letters echoed back as stray combining marks (``TNF-α`` -> ``TNF-`` + U+0311) — so
+    the model's quote can render as garbage in the UI even when it verifies. Since the
+    quote has passed verbatim verification, prefer the matching sentence from the
+    abstract, which is guaranteed clean. Falls back to a mark-stripped copy of the
+    model quote when no sentence matches well enough.
+    """
+    norm_quote = normalize_text(quote)
+    if not norm_quote:
+        return quote
+    best, best_ratio = "", 0.0
+    for sentence in re.split(r"(?<=[.!?])\s+", abstract.strip()):
+        ratio = difflib.SequenceMatcher(
+            None, norm_quote, normalize_text(sentence), autojunk=False
+        ).ratio()
+        if ratio > best_ratio:
+            best, best_ratio = sentence.strip(), ratio
+    if best_ratio >= 0.85:
+        return best
+    return _strip_combining_marks(quote)
 
 
 async def extract_claims_async(abstract: str) -> list[Claim]:
@@ -137,6 +181,10 @@ async def extract_claims_async(abstract: str) -> list[Claim]:
                 if quote and not fuzzy_substring_match(normalize_text(quote), norm_abstract):
                     print(f"  dropped non-verbatim quote: {c.source_quote[:60]!r}...")
                     continue
+                if quote:
+                    # Store the abstract's own text rather than the model's echo, which
+                    # can carry corrupted characters (e.g. Greek letters as combining marks).
+                    c.source_quote = recover_quote(quote, abstract)
                 kept.append(c)
             return kept
         except APIError as e:
