@@ -17,6 +17,8 @@ data/kg.kuzu*
 data/abstracts/
 data/claims/
 data/logs/
+data/ingested_compounds.json
+data/synonyms.json
 
 # macOS
 .DS_Store
