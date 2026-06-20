@@ -32,7 +32,7 @@
       {% if r.dose_text %}<span class="dose">dose: {{ r.dose_text }}</span>{% endif %}
       {% if r.cohort_text %}<span class="cohort">cohort: {{ r.cohort_text }}</span>{% endif %}
       <a class="pmid" href="https://pubmed.ncbi.nlm.nih.gov/{{ r.source_pmid }}/"
-         target="_blank" rel="noopener">PMID {{ r.source_pmid }}</a>
+         target="_blank" rel="noopener" title="{{ r.source_pmid | pmid_title }} (PMID {{ r.source_pmid }})">{{ r.source_pmid | pmid_display }}</a>
     </div>
   </div>
   {% endfor %}

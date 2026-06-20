@@ -51,8 +51,28 @@ def efetch(pmids: list[str]) -> list[dict]:
         pmid = art.findtext(".//PMID")
         title = art.findtext(".//ArticleTitle") or ""
         abstract = " ".join(t.text or "" for t in art.findall(".//AbstractText")).strip()
+        journal = art.findtext(".//Journal/ISOAbbreviation") or art.findtext(".//Journal/Title") or art.findtext(".//Book/BookTitle") or ""
+        journal = journal.strip()
+        
+        authors = ""
+        authors_list = art.findall(".//AuthorList/Author")
+        if authors_list:
+            first_author = authors_list[0].findtext("LastName") or authors_list[0].findtext("CollectiveName") or ""
+            first_author = first_author.strip()
+            if first_author:
+                if len(authors_list) > 1:
+                    authors = f"{first_author} et al."
+                else:
+                    authors = first_author
+        
         if pmid and abstract:
-            out.append({"pmid": pmid, "title": title, "abstract": abstract})
+            out.append({
+                "pmid": pmid,
+                "title": title,
+                "abstract": abstract,
+                "journal": journal,
+                "authors": authors,
+            })
     return out
 
 

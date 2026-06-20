@@ -1,15 +1,17 @@
 <!doctype html>
 <html lang="en">
+
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>Supplement Knowledge Graph</title>
+  <title>Supplementary</title>
   <link rel="stylesheet" href="/static/style.css">
   <script src="https://unpkg.com/htmx.org@2.0.4"></script>
 </head>
+
 <body>
   <header>
-    <h1>Supplement Knowledge Graph</h1>
+    <h1>Supplementary</h1>
     <p class="sub">Ask what a compound does, what affects an outcome, what acts on a
       target, or which compounds share a target. Every answer shows the verbatim
       source quote — the only QA you need is reading.</p>
@@ -30,14 +32,14 @@
       searching the graph…
     </div>
 
-    <form id="ask-form" hx-post="/ask" hx-target="#transcript" hx-swap="beforeend"
-          hx-disabled-elt="#send" hx-indicator="#pending">
-      <input type="text" name="q" id="q" placeholder="Ask the graph…"
-             autocomplete="off" required>
+    <form id="ask-form" hx-post="/ask" hx-target="#transcript" hx-swap="beforeend" hx-disabled-elt="#send"
+      hx-indicator="#pending">
+      <input type="text" name="q" id="q" placeholder="Ask the graph…" autocomplete="off" required>
       <button type="submit" id="send">Ask</button>
     </form>
   </main>
 
   <script src="/static/app.js"></script>
 </body>
+
 </html>

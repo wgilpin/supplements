@@ -17,6 +17,8 @@ from pathlib import Path
 from typing import Annotated, cast
 
 import re
+import json
+from functools import lru_cache
 
 import kuzu
 import markdown
@@ -67,6 +69,45 @@ def render_markdown(text: str) -> str:
 templates.env.filters["markdown"] = render_markdown
 
 
+@lru_cache(maxsize=1024)
+def get_pmid_display(pmid: str) -> str:
+    if not pmid:
+        return ""
+    path = config.ABSTRACTS_DIR / f"{pmid}.json"
+    if path.exists():
+        try:
+            data = json.loads(path.read_text())
+            journal = data.get("journal")
+            if journal:
+                return str(journal).strip()
+            authors = data.get("authors")
+            if authors:
+                return str(authors).strip()
+        except Exception:
+            pass
+    return f"PMID {pmid}"
+
+
+@lru_cache(maxsize=1024)
+def get_pmid_title(pmid: str) -> str:
+    if not pmid:
+        return ""
+    path = config.ABSTRACTS_DIR / f"{pmid}.json"
+    if path.exists():
+        try:
+            data = json.loads(path.read_text())
+            title = data.get("title")
+            if title:
+                return str(title).strip()
+        except Exception:
+            pass
+    return f"PMID {pmid}"
+
+
+templates.env.filters["pmid_display"] = get_pmid_display
+templates.env.filters["pmid_title"] = get_pmid_title
+
+
 def get_db_conn(request: Request) -> Generator[kuzu.Connection, None, None]:
     # Check if a test database has been injected via app.state.db, use it.
     test_db = getattr(request.app.state, "db", None)
@@ -95,7 +136,7 @@ async def lifespan(app: FastAPI) -> AsyncIterator[None]:
     yield
 
 
-app = FastAPI(title="Supplement Knowledge Graph", lifespan=lifespan)
+app = FastAPI(title="Supplementary", lifespan=lifespan)
 app.mount("/static", StaticFiles(directory=str(_BASE / "static")), name="static")
 
 
