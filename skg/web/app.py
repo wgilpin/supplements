@@ -109,7 +109,8 @@ def ask(request: Request, q: Annotated[str, Form()]) -> HTMLResponse:
     else:
         display = results
 
-    summary = summarize.summarize(q, display)
+    # A plain supplement list has nothing to summarise — skip the LLM call.
+    summary = "" if req.query == "list_supplements" else summarize.summarize(q, display)
     logger.info("ask %r -> query=%s entity=%r (%d rows, %d cards)",
                 q, req.query, req.entity, len(results), len(display))
     return templates.TemplateResponse(

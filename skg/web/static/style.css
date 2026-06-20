@@ -91,6 +91,20 @@ main {
 }
 .interp { margin: 0 0 0.6rem; color: var(--muted); font-size: 0.9rem; }
 .interp strong { color: var(--text); }
+
+.chips { display: flex; flex-wrap: wrap; gap: 0.4rem; }
+.chip-form { margin: 0; }
+.chip-btn {
+  font: inherit;
+  font-size: 0.85rem;
+  padding: 0.2rem 0.6rem;
+  border-radius: 999px;
+  background: var(--panel);
+  border: 1px solid var(--border);
+  color: var(--text);
+  cursor: pointer;
+}
+.chip-btn:hover { border-color: var(--text); }
 .ev-filter {
   background: var(--panel-2);
   border-radius: 6px;

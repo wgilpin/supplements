@@ -74,7 +74,14 @@ class ContradictionRow(BaseModel):
 
 
 QueryName = Literal["compound", "effect", "target", "bridge",
-                    "contradictions", "search", "intersection", "unknown"]
+                    "contradictions", "search", "intersection",
+                    "list_supplements", "unknown"]
+
+
+class SupplementRow(BaseModel):
+    """One supplement the graph has data on (a fully ingested compound)."""
+
+    name: str
 
 
 class QueryRequest(BaseModel):
@@ -86,7 +93,8 @@ class QueryRequest(BaseModel):
     min_evidence: int = 1
 
 
-QueryResult = list[ClaimRow] | list[BridgeRow] | list[ContradictionRow]
+QueryResult = (list[ClaimRow] | list[BridgeRow] | list[ContradictionRow]
+               | list[SupplementRow])
 
 
 # --- helpers -------------------------------------------------------------------
@@ -168,6 +176,21 @@ def list_targets(conn: kuzu.Connection) -> list[str]:
 
 def list_effects(conn: kuzu.Connection) -> list[str]:
     return _distinct(conn, "Effect")
+
+
+def list_supplements(conn: kuzu.Connection,
+                     ingested: set[str] | None = None) -> list[SupplementRow]:
+    """The supplements we actually have data on: graph Compound nodes that have
+    been fully ingested (not merely *mentioned* in another compound's evidence).
+    Names are returned in their graph display form, alphabetically."""
+    if ingested is None:
+        from .normalise import get_ingested_compounds
+        ingested = get_ingested_compounds()
+    return [
+        SupplementRow(name=n)
+        for n in list_compounds(conn)
+        if normalise_str(n) in ingested
+    ]
 
 
 # --- the four essential queries ------------------------------------------------
@@ -488,6 +511,8 @@ def dispatch(conn: kuzu.Connection, req: QueryRequest) -> QueryResult:
                     conn, [t for t in resolved_targets if t is not None], req.min_evidence
                 )
             return []
+        case "list_supplements":
+            return list_supplements(conn)
         case "unknown":
             return []
 

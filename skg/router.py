@@ -42,6 +42,7 @@ Pick exactly one `query` type:
 - "contradictions": conflicting (increase vs decrease) claims for an effect. entity = the effect, or null for all effects.
 - "search": a free-text keyword search over the evidence quotes — use when the user asks what mentions/studies a term, or when the term is unlikely to be a normalised compound/effect/target node (e.g. a disease named only by abbreviation). entity = the keyword.
 - "intersection": when the user asks about the intersection of multiple entities (e.g. what is affected by BOTH compound A and compound B, what affects BOTH effect A and effect B, or what acts on BOTH target A and target B). entities = the list of these multiple entities.
+- "list_supplements": the user wants the whole list of supplements/compounds the graph has data on, not anything about one specific compound (e.g. "what supplements do you know about", "list supplements", "show me which supplements you have data on", "which compounds do you cover"). entity = null.
 - "unknown": the question does not map to any of the above.
 
 Extract `entity` (for non-intersection queries):

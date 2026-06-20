@@ -65,6 +65,26 @@ def test_list_effects(conn):
     assert query.list_effects(conn) == ["anxiety", "muscle cramps", "sleep quality"]
 
 
+def test_list_supplements_filters_to_ingested(conn):
+    # Only taurine and glycine are marked fully ingested; magnesium is excluded.
+    rows = query.list_supplements(conn, ingested={"taurine", "glycine"})
+    assert [r.name for r in rows] == ["glycine", "taurine"]
+
+
+def test_list_supplements_empty_when_none_ingested(conn):
+    assert query.list_supplements(conn, ingested=set()) == []
+
+
+def test_dispatch_list_supplements(conn, monkeypatch):
+    # Stub the ingested set so the test never reads/writes the live data dir.
+    monkeypatch.setattr(
+        "skg.normalise.get_ingested_compounds", lambda: {"taurine", "magnesium"}
+    )
+    rows = query.dispatch(conn, query.QueryRequest(query="list_supplements"))
+    assert all(isinstance(r, query.SupplementRow) for r in rows)
+    assert [r.name for r in rows] == ["magnesium", "taurine"]
+
+
 # --- claims_for_compound -------------------------------------------------------
 
 def test_claims_for_compound(conn):

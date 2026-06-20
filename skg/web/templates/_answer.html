@@ -21,7 +21,24 @@
   </div>
 {% endif %}
 
-{% if req.query == 'unknown' %}
+{% if req.query == 'list_supplements' %}
+  {% if results %}
+  <p class="interp">{{ results|length }} supplement{{ '' if results|length == 1 else 's' }}
+    with data in the graph — click one to see what it does:</p>
+  <div class="chips">
+    {% for r in results %}
+    <form class="chip-form" hx-post="/ask" hx-target="#transcript" hx-swap="beforeend"
+          hx-indicator="#pending">
+      <input type="hidden" name="q" value="what does {{ r.name }} do?">
+      <button type="submit" class="chip-btn">{{ r.name }}</button>
+    </form>
+    {% endfor %}
+  </div>
+  {% else %}
+  <p class="note">No supplements have been ingested yet.</p>
+  {% endif %}
+
+{% elif req.query == 'unknown' %}
   <p class="note">I couldn't map that to a query I know. Try asking what a compound
     does, what affects an outcome, what acts on a target, which compounds share a
     target, or about contradictions for an outcome.</p>
