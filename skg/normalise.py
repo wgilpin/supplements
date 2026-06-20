@@ -35,6 +35,21 @@ CUSTOM_SYNONYMS = {
     "vitamin d": "vitamin d3",
 }
 
+COMPOSITE_COMPOUNDS = {
+    "omega 3 fish oil": ["eicosapentaenoic acid", "docosahexaenoic acid"],
+    "omega 3": ["eicosapentaenoic acid", "docosahexaenoic acid"],
+    "fish oil": ["eicosapentaenoic acid", "docosahexaenoic acid"],
+    "epa dha": ["eicosapentaenoic acid", "docosahexaenoic acid"],
+}
+
+COMPOSITE_DISPLAY_NAMES = {
+    "omega 3 fish oil": "omega-3 fish oil",
+    "omega 3": "omega-3",
+    "fish oil": "fish oil",
+    "epa dha": "EPA + DHA",
+}
+
+
 
 def canonical_compound(name: str, synonyms: dict[str, str]) -> str:
     """Resolve a compound name to its canonical form via the synonym dict,
@@ -89,4 +104,7 @@ def is_compound_ingested(name: str) -> bool:
     norm = normalise_str(name)
     if not norm:
         return False
+    if norm in COMPOSITE_COMPOUNDS:
+        compounds = get_ingested_compounds()
+        return all(normalise_str(c) in compounds for c in COMPOSITE_COMPOUNDS[norm])
     return norm in get_ingested_compounds()

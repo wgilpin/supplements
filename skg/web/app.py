@@ -28,7 +28,9 @@ from pydantic import BaseModel
 
 from .. import config, query, router, summarize
 from ..logging_config import setup_logging
-from ..normalise import is_compound_ingested
+from ..normalise import is_compound_ingested, load_synonyms, normalise_str
+from ..pipeline import ingest_supplement_async
+from ..canonicalise import propose, apply_map
 
 logger = logging.getLogger(__name__)
 
@@ -118,7 +120,6 @@ def ask(
     if req.query in ("compound", "bridge") and req.entity:
         resolved = query.resolve_entity(conn, req.entity, "compound")
         if resolved:
-            from ..normalise import load_synonyms, normalise_str
             synonyms = load_synonyms()
             norm_entity = normalise_str(req.entity)
             norm_resolved = normalise_str(resolved)
@@ -177,12 +178,10 @@ async def ingest(
     if not resolved or not is_compound_ingested(resolved):
         logger.info("Starting live ingestion for %r", supplement)
         try:
-            from ..pipeline import ingest_supplement_async
             await ingest_supplement_async(conn, supplement)
             
             # Post-ingestion canonicalisation pass (principled deduplication)
             try:
-                from ..canonicalise import propose, apply_map
                 logger.info("Running automatic post-ingestion canonicalisation pass")
                 proposal = propose(conn)
                 apply_map(conn, proposal)
@@ -224,7 +223,6 @@ async def canonicalise_endpoint(
 ) -> HTMLResponse:
     logger.info("Starting manual canonicalisation/deduplication pass")
     try:
-        from ..canonicalise import propose, apply_map
         proposal = propose(conn)
         merged = apply_map(conn, proposal)
         logger.info("Manual canonicalisation complete: %s", merged)

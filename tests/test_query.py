@@ -336,3 +336,28 @@ def test_expand_compound_names(tmp_path):
     assert len(rows2) == 2
     assert {r.compound for r in rows2} == {"vitamin d", "vitamin d3"}
 
+
+def test_resolve_entity_composite(conn):
+    assert query.resolve_entity(conn, "omega-3 fish oil", "compound") == "omega-3 fish oil"
+    assert query.resolve_entity(conn, "fish oil", "compound") == "fish oil"
+    assert query.resolve_entity(conn, "epa dha", "compound") == "EPA + DHA"
+
+
+def test_claims_for_compound_composite(tmp_path):
+    c = graph.connect(tmp_path / "test_composite.kuzu")
+    graph.init_schema(c)
+    
+    c.execute("MERGE (c:Compound {name: 'eicosapentaenoic acid'})")
+    c.execute("MERGE (c:Compound {name: 'docosahexaenoic acid'})")
+    
+    c.execute("MERGE (cl:Claim {id: 'cl1', direction: 'decreases', dose_text: '', cohort_text: '', model: 'human RCT', evidence_score: 5, source_pmid: 'p1', source_quote: 'EPA reduced anxiety.'})")
+    c.execute("MATCH (c:Compound {name: 'eicosapentaenoic acid'}), (cl:Claim {id: 'cl1'}) MERGE (c)-[:HAS_CLAIM]->(cl)")
+    
+    c.execute("MERGE (cl:Claim {id: 'cl2', direction: 'decreases', dose_text: '', cohort_text: '', model: 'human RCT', evidence_score: 5, source_pmid: 'p2', source_quote: 'DHA reduced depression.'})")
+    c.execute("MATCH (c:Compound {name: 'docosahexaenoic acid'}), (cl:Claim {id: 'cl2'}) MERGE (c)-[:HAS_CLAIM]->(cl)")
+    
+    rows = query.claims_for_compound(c, "omega-3 fish oil")
+    assert len(rows) == 2
+    assert {r.compound for r in rows} == {"eicosapentaenoic acid", "docosahexaenoic acid"}
+
+

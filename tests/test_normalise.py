@@ -48,3 +48,11 @@ def test_ingested_compounds_tracking(tmp_path):
         add_ingested_compound("Quercetin")
         assert is_compound_ingested("quercetin") is True
         assert is_compound_ingested("QUERCETIN") is True
+
+        # Test composite compounds
+        # "omega 3 fish oil" is mapped to ["eicosapentaenoic acid", "docosahexaenoic acid"]
+        assert is_compound_ingested("omega-3 fish oil") is False
+        add_ingested_compound("eicosapentaenoic acid")
+        assert is_compound_ingested("omega-3 fish oil") is False
+        add_ingested_compound("docosahexaenoic acid")
+        assert is_compound_ingested("omega-3 fish oil") is True

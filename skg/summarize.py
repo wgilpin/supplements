@@ -30,9 +30,12 @@ def _get_client() -> genai.Client:
     return _client
 
 
-PROMPT = """Answer the user's question in 1-3 sentences using ONLY the structured
-claims below, retrieved from a supplement knowledge graph. Ground every statement
-in the claims — do NOT add outside knowledge.
+PROMPT = """Answer the user's question in 1-3 sentences using the structured
+claims below, retrieved from a supplement knowledge graph.
+
+Ground all statements about supplement efficacy, interactions, and directions ONLY in the provided claims — do NOT add outside knowledge regarding supplement effects.
+
+However, if the user asks about the general definition, symptoms, or background of a disease or condition (e.g. "what are the symptoms of vitamin d deficiency"), you may use your general knowledge to briefly state those symptoms/definition. Clearly distinguish what comes from general knowledge (e.g., "Generally, symptoms of vitamin D deficiency include...") versus what is supported by the retrieved studies.
 
 Note evidence strength where useful, but do NOT use raw numerical scores (1-5)
 in the output. Instead, translate these internal scores to human-readable terms:

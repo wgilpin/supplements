@@ -198,10 +198,16 @@ def list_supplements(conn: kuzu.Connection,
 
 def _expand_compound_names(conn: kuzu.Connection, compound: str) -> list[str]:
     """Find all compound names in the database that map to the same canonical synonym group."""
-    from .normalise import load_synonyms, normalise_str, CUSTOM_SYNONYMS
+    from .normalise import load_synonyms, normalise_str, CUSTOM_SYNONYMS, COMPOSITE_COMPOUNDS
     syns = load_synonyms()
     
     norm = normalise_str(compound)
+    if norm in COMPOSITE_COMPOUNDS:
+        results = []
+        for constituent in COMPOSITE_COMPOUNDS[norm]:
+            results.extend(_expand_compound_names(conn, constituent))
+        return list(set(results))
+
     canonical_name = CUSTOM_SYNONYMS.get(norm, syns.get(norm, compound))
     norm_canonical = normalise_str(canonical_name)
     
@@ -378,6 +384,11 @@ def resolve_entity(conn: kuzu.Connection, raw: str,
     norm = normalise_str(raw)
     if not norm:
         return None
+
+    if kind == "compound":
+        from .normalise import COMPOSITE_COMPOUNDS, COMPOSITE_DISPLAY_NAMES
+        if norm in COMPOSITE_COMPOUNDS:
+            return COMPOSITE_DISPLAY_NAMES[norm]
     # Compare on normalised forms: M1 stores compound names un-normalised
     # (e.g. "N-acetyl cysteine"), so we must normalise both sides to match.
     by_norm = {normalise_str(n): n for n in _distinct(conn, _LABEL_BY_KIND[kind])}

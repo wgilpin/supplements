@@ -52,7 +52,8 @@ def test_ask_loose_match(tmp_path):
 
         with patch("skg.router.route", return_value=mock_req), \
              patch("skg.query.dispatch", return_value=[]), \
-             patch("skg.summarize.summarize", return_value=""):
+             patch("skg.summarize.summarize", return_value=""), \
+             patch("skg.web.app.is_compound_ingested", return_value=False):
             response = client.post("/ask", data={"q": "what does methylfolate do?"})
 
         assert response.status_code == 200
@@ -89,9 +90,9 @@ def test_ingest_canonicalisation_trigger(tmp_path):
         client = TestClient(app)
         
         with patch("skg.web.app.is_compound_ingested", return_value=False), \
-             patch("skg.pipeline.ingest_supplement_async", new_callable=AsyncMock) as mock_ingest, \
-             patch("skg.canonicalise.propose", return_value={}) as mock_propose, \
-             patch("skg.canonicalise.apply_map", return_value={}) as mock_apply:
+             patch("skg.web.app.ingest_supplement_async", new_callable=AsyncMock) as mock_ingest, \
+             patch("skg.web.app.propose", return_value={}) as mock_propose, \
+             patch("skg.web.app.apply_map", return_value={}) as mock_apply:
             
             response = client.post("/ingest", data={"supplement": "folate"})
             
@@ -125,8 +126,8 @@ def test_canonicalise_endpoint(tmp_path):
         client = TestClient(app)
         
         mock_result = {"Compound": 2, "Target": 0, "Effect": 0}
-        with patch("skg.canonicalise.propose", return_value={}) as mock_propose, \
-             patch("skg.canonicalise.apply_map", return_value=mock_result) as mock_apply:
+        with patch("skg.web.app.propose", return_value={}) as mock_propose, \
+             patch("skg.web.app.apply_map", return_value=mock_result) as mock_apply:
             
             response = client.post("/canonicalise")
             

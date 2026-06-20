@@ -18,8 +18,19 @@ logger = logging.getLogger(__name__)
 
 
 def run(supplement_names: list[str]) -> None:
+    from .normalise import COMPOSITE_COMPOUNDS, normalise_str
+    expanded_names = []
+    composite_inputs = []
+    for name in supplement_names:
+        norm = normalise_str(name)
+        if norm in COMPOSITE_COMPOUNDS:
+            expanded_names.extend(COMPOSITE_COMPOUNDS[norm])
+            composite_inputs.append(name)
+        else:
+            expanded_names.append(name)
+
     # Step 3a: ensure synonym dict covers every supplement (off the hot path).
-    synonyms.build_all(supplement_names)
+    synonyms.build_all(expanded_names)
     syns = load_synonyms()
 
     conn = graph.connect()
@@ -27,7 +38,7 @@ def run(supplement_names: list[str]) -> None:
 
     # 1. Gather all records from PubMed for all supplements
     all_records = []
-    for name in supplement_names:
+    for name in expanded_names:
         logger.info("=== Fetching abstracts for %s ===", name)
         records = fetch.fetch_supplement(name)
         all_records.extend(records)
@@ -82,9 +93,11 @@ def run(supplement_names: list[str]) -> None:
     logger.info("Loaded %d claims.", total_claims)
     logger.info("Graph node counts: %s", graph.counts(conn))
 
-    for name in supplement_names:
+    for name in expanded_names:
         canonical_name = canonical_compound(name, syns)
         add_ingested_compound(canonical_name)
+    for name in composite_inputs:
+        add_ingested_compound(name)
 
 
 async def ingest_supplement_async(conn: kuzu.Connection, name: str) -> int:
@@ -96,6 +109,17 @@ async def ingest_supplement_async(conn: kuzu.Connection, name: str) -> int:
     4. Save claims to data/claims/ cached.
     5. Load claims into the Kuzu database.
     """
+    from .normalise import COMPOSITE_COMPOUNDS, normalise_str
+    norm = normalise_str(name)
+    if norm in COMPOSITE_COMPOUNDS:
+        logger.info("Composite compound detected during ingestion: %s -> %s", name, COMPOSITE_COMPOUNDS[norm])
+        total_loaded = 0
+        for constituent in COMPOSITE_COMPOUNDS[norm]:
+            total_loaded += await ingest_supplement_async(conn, constituent)
+        # Also mark the composite compound itself as ingested
+        add_ingested_compound(name)
+        return total_loaded
+
     logger.info("=== Ingesting %s on-demand ===", name)
 
     # 1. PubChem synonyms lookup
