@@ -42,13 +42,26 @@ _FIXTURE = [
 ]
 
 
-@pytest.fixture
-def conn(tmp_path):
-    c = graph.connect(tmp_path / "test.kuzu")
+def _seed(path):
+    c = graph.connect(path)
     graph.init_schema(c)
     for claim, pmid in _FIXTURE:
         graph.load_claim(c, claim, pmid, synonyms={})
     return c
+
+
+@pytest.fixture(scope="module")
+def conn(tmp_path_factory):
+    # Built once for the whole module: every test using this fixture is
+    # read-only, so they can share a single seeded graph. Tests that MERGE
+    # new nodes must use `mutable_conn` instead to avoid polluting it.
+    return _seed(tmp_path_factory.mktemp("query_kg") / "test.kuzu")
+
+
+@pytest.fixture
+def mutable_conn(tmp_path):
+    # Function-scoped, isolated copy for tests that write to the graph.
+    return _seed(tmp_path / "test.kuzu")
 
 
 # --- list helpers --------------------------------------------------------------
@@ -202,17 +215,17 @@ def test_resolve_entity_missing(conn):
     assert query.resolve_entity(conn, "nonexistent thing", "effect") is None
 
 
-def test_resolve_entity_unnormalised_node_name(conn):
+def test_resolve_entity_unnormalised_node_name(mutable_conn):
     # M1 stores compound names un-normalised (caps/hyphens). Resolving the typed
     # form must match the stored node, not a shorter substring node like "cysteine".
-    conn.execute("MERGE (c:Compound {name: 'N-Acetyl Cysteine'})")
-    conn.execute("MERGE (c:Compound {name: 'cysteine'})")
-    assert query.resolve_entity(conn, "n acetyl cysteine", "compound") == "N-Acetyl Cysteine"
+    mutable_conn.execute("MERGE (c:Compound {name: 'N-Acetyl Cysteine'})")
+    mutable_conn.execute("MERGE (c:Compound {name: 'cysteine'})")
+    assert query.resolve_entity(mutable_conn, "n acetyl cysteine", "compound") == "N-Acetyl Cysteine"
 
 
-def test_resolve_entity_synonym(conn):
-    conn.execute("MERGE (c:Compound {name: 'curcumin'})")
-    assert query.resolve_entity(conn, "curcurmin", "compound") == "curcumin"
+def test_resolve_entity_synonym(mutable_conn):
+    mutable_conn.execute("MERGE (c:Compound {name: 'curcumin'})")
+    assert query.resolve_entity(mutable_conn, "curcurmin", "compound") == "curcumin"
 
 
 # --- group_claims (display merge of same-evidence rows) ------------------------
