@@ -162,13 +162,16 @@ async def extract_claims_async(abstract: str) -> list[Claim]:
     max_retries = 3
     for attempt in range(max_retries):
         try:
-            resp = await client.aio.models.generate_content(
-                model=config.GEMINI_MODEL,
-                contents=PROMPT.format(abstract=abstract),
-                config={
-                    "response_mime_type": "application/json",
-                    "response_schema": list[Claim],
-                },
+            resp = await asyncio.wait_for(
+                client.aio.models.generate_content(
+                    model=config.GEMINI_MODEL,
+                    contents=PROMPT.format(abstract=abstract),
+                    config={
+                        "response_mime_type": "application/json",
+                        "response_schema": list[Claim],
+                    },
+                ),
+                timeout=config.GEMINI_REQUEST_TIMEOUT,
             )
             parsed = resp.parsed
             claims: list[Claim] = parsed if isinstance(parsed, list) else []
@@ -187,6 +190,16 @@ async def extract_claims_async(abstract: str) -> list[Claim]:
                     c.source_quote = recover_quote(quote, abstract)
                 kept.append(c)
             return kept
+        except (asyncio.TimeoutError, TimeoutError):
+            if attempt < max_retries - 1:
+                sleep_time = (2 ** attempt) + 1
+                print(
+                    f"  Request exceeded {config.GEMINI_REQUEST_TIMEOUT:.0f}s timeout. "
+                    f"Retrying in {sleep_time}s..."
+                )
+                await asyncio.sleep(sleep_time)
+                continue
+            raise
         except APIError as e:
             is_transient = e.code in (429, 500, 503, 504) or "limit" in str(e).lower() or "exhausted" in str(e).lower()
             if is_transient and attempt < max_retries - 1:
