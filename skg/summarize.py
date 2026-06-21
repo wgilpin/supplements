@@ -13,20 +13,20 @@ import json
 import logging
 from collections.abc import Sequence
 
-from google import genai
+from typing import Any
 from pydantic import BaseModel
-
+from .llm import get_client, get_model
 from . import config
 
 logger = logging.getLogger(__name__)
 
-_client: genai.Client | None = None
+_client: Any = None
 
 
-def _get_client() -> genai.Client:
+def _get_client() -> Any:
     global _client
     if _client is None:
-        _client = genai.Client(api_key=config.GEMINI_API_KEY)
+        _client = get_client()
     return _client
 
 
@@ -65,7 +65,7 @@ def summarize(question: str, results: Sequence[BaseModel]) -> str:
     payload = [r.model_dump() for r in list(results)[:_MAX_ROWS]]
     try:
         resp = _get_client().models.generate_content(
-            model=config.GEMINI_MODEL,
+            model=get_model(),
             contents=PROMPT.format(
                 question=question, claims=json.dumps(payload, default=str)
             ),

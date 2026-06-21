@@ -19,9 +19,9 @@ import sys
 from pathlib import Path
 
 import kuzu
-from google import genai
+from typing import Any
 from pydantic import BaseModel
-
+from .llm import get_client, get_model
 from . import config, graph
 from .normalise import normalise_str
 
@@ -70,13 +70,13 @@ NAMES:
 {names}
 """
 
-_client: genai.Client | None = None
+_client: Any = None
 
 
-def _get_client() -> genai.Client:
+def _get_client() -> Any:
     global _client
     if _client is None:
-        _client = genai.Client(api_key=config.GEMINI_API_KEY)
+        _client = get_client()
     return _client
 
 
@@ -90,7 +90,7 @@ def propose_label(conn: kuzu.Connection, label: str) -> LabelProposal:
     if not names:
         return LabelProposal(clusters=[], flags=[])
     resp = _get_client().models.generate_content(
-        model=config.GEMINI_MODEL,
+        model=get_model(),
         contents=PROMPT.format(label=label, names="\n".join(names)),
         config={"response_mime_type": "application/json",
                 "response_schema": LabelProposal},

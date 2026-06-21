@@ -12,16 +12,16 @@ COPY --from=ghcr.io/astral-sh/uv:latest /uv /uvx /bin/
 # Set working directory
 WORKDIR /app
 
-# Copy dependency files
-COPY pyproject.toml uv.lock ./
+# Copy dependency files. README.md is included because pyproject.toml declares
+# `readme = "README.md"`, which hatchling validates while building the package.
+COPY pyproject.toml uv.lock README.md ./
 
 # Install dependencies using uv
 RUN uv sync --frozen --no-dev
 
-# Copy the application code and data
+# Copy the application code. The data/ directory is NOT baked into the image —
+# it is provided at runtime by the `supps-data` named volume (see docker-compose.yml).
 COPY skg/ skg/
-COPY data/ data/
-COPY README.md ./
 
 # Expose the FastAPI port
 EXPOSE 8000

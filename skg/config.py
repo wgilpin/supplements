@@ -31,12 +31,18 @@ PUBCHEM_SYNONYMS_URL = (
     "https://pubchem.ncbi.nlm.nih.gov/rest/pug/compound/name/{}/synonyms/JSON"
 )
 
+# Active provider configuration (GEMINI or OPENROUTER)
+ACTIVE_PROVIDER = os.environ.get("ACTIVE_PROVIDER", "GEMINI").upper()
+
 # Gemini
 GEMINI_MODEL = "gemini-3.5-flash"
 GEMINI_API_KEY = os.environ.get("GEMINI_API_KEY")
-# Per-request timeout (s). A single slow/hung call must not stall the whole batch,
-# since extract_claims_batch awaits all requests together — cap and retry instead.
 GEMINI_REQUEST_TIMEOUT = 60.0
+
+# OpenRouter
+OPENROUTER_MODEL = "deepseek/deepseek-v4-pro"
+OPENROUTER_API_KEY = os.environ.get("OPENROUTER_API_KEY")
+OPENROUTER_REQUEST_TIMEOUT = 180.0
 
 # Evidence score rubric (spec §7): model keyword -> score 1-5.
 EVIDENCE_RUBRIC = {

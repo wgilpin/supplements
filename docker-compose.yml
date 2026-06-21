@@ -1,9 +1,23 @@
 services:
   web:
     build: .
-    ports:
-      - "8000:8000"
+    container_name: supps
+    restart: unless-stopped
     environment:
-      - GEMINI_API_KEY=${GEMINI_API_KEY}
+      - OPENROUTER_API_KEY=${OPENROUTER_API_KEY}
     volumes:
-      - ./data:/app/data
+      # Persistent app data (kuzu DB, abstracts, claims, json). Survives
+      # rebuilds/recreations. Seeded once during the initial deploy — see DEPLOY.md.
+      - supps-data:/app/data
+    networks:
+      - web-routing
+
+# Shared external network the Caddy reverse proxy lives on. Caddy routes
+# https://supps.teleosis.ai -> the `supps` container via dynamic upstreams.
+networks:
+  web-routing:
+    external: true
+
+volumes:
+  supps-data:
+    name: supps-data

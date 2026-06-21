@@ -8,9 +8,8 @@ import logging
 import re
 import unicodedata
 
-from google import genai
-from google.genai.errors import APIError
-
+from typing import Any
+from .llm import get_client, get_model, get_timeout, APIError
 from . import config
 from .schema import Claim, is_meaningful
 
@@ -69,13 +68,13 @@ ABSTRACT:
 {abstract}
 """
 
-_client: genai.Client | None = None
+_client: Any = None
 
 
-def _get_client() -> genai.Client:
+def _get_client() -> Any:
     global _client
     if _client is None:
-        _client = genai.Client(api_key=config.GEMINI_API_KEY)
+        _client = get_client()
     return _client
 
 
@@ -167,14 +166,14 @@ async def extract_claims_async(abstract: str) -> list[Claim]:
         try:
             resp = await asyncio.wait_for(
                 client.aio.models.generate_content(
-                    model=config.GEMINI_MODEL,
+                    model=get_model(),
                     contents=PROMPT.format(abstract=abstract),
                     config={
                         "response_mime_type": "application/json",
                         "response_schema": list[Claim],
                     },
                 ),
-                timeout=config.GEMINI_REQUEST_TIMEOUT,
+                timeout=get_timeout(),
             )
             parsed = resp.parsed
             claims: list[Claim] = parsed if isinstance(parsed, list) else []
@@ -198,7 +197,7 @@ async def extract_claims_async(abstract: str) -> list[Claim]:
                 sleep_time = (2 ** attempt) + 1
                 logger.warning(
                     "Request exceeded %.0fs timeout. Retrying in %ds...",
-                    config.GEMINI_REQUEST_TIMEOUT,
+                    get_timeout(),
                     sleep_time,
                 )
                 await asyncio.sleep(sleep_time)

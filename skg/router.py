@@ -15,21 +15,22 @@ from __future__ import annotations
 
 import logging
 
+from typing import Any
 import kuzu
-from google import genai
+from .llm import get_client, get_model
 
 from . import config, query
 from .query import QueryRequest
 
 logger = logging.getLogger(__name__)
 
-_client: genai.Client | None = None
+_client: Any = None
 
 
-def _get_client() -> genai.Client:
+def _get_client() -> Any:
     global _client
     if _client is None:
-        _client = genai.Client(api_key=config.GEMINI_API_KEY)
+        _client = get_client()
     return _client
 
 
@@ -80,7 +81,7 @@ def route(conn: kuzu.Connection, question: str) -> QueryRequest:
         question=question,
     )
     resp = _get_client().models.generate_content(
-        model=config.GEMINI_MODEL,
+        model=get_model(),
         contents=prompt,
         config={
             "response_mime_type": "application/json",

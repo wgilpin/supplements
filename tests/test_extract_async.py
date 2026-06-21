@@ -1,6 +1,6 @@
 import pytest
 from unittest.mock import AsyncMock, MagicMock, patch
-from google.genai.errors import APIError
+from skg.llm import APIError
 from skg.extract import extract_claims_async, extract_claims_batch
 from skg.schema import Claim
 
@@ -32,7 +32,7 @@ async def test_extract_claims_async_retry_on_429():
     mock_response = MagicMock()
     mock_response.parsed = [Claim(**_claim_dict())]
     
-    api_error = APIError(code=429, response_json={"error": {"message": "Resource exhausted"}})
+    api_error = APIError(message="Resource exhausted", code=429)
     
     mock_generate = AsyncMock()
     mock_generate.side_effect = [api_error, mock_response]
