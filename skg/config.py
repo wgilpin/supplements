@@ -35,14 +35,14 @@ PUBCHEM_SYNONYMS_URL = (
 ACTIVE_PROVIDER = os.environ.get("ACTIVE_PROVIDER", "GEMINI").upper()
 
 # Gemini
-GEMINI_MODEL = "gemini-3.5-flash"
+GEMINI_MODEL = os.environ.get("GEMINI_MODEL", "gemini-3.5-flash")
 GEMINI_API_KEY = os.environ.get("GEMINI_API_KEY")
-GEMINI_REQUEST_TIMEOUT = 60.0
+GEMINI_REQUEST_TIMEOUT = float(os.environ.get("GEMINI_REQUEST_TIMEOUT", "180.0"))
 
 # OpenRouter
-OPENROUTER_MODEL = "deepseek/deepseek-v4-pro"
+OPENROUTER_MODEL = os.environ.get("OPENROUTER_MODEL", "deepseek/deepseek-v4-pro")
 OPENROUTER_API_KEY = os.environ.get("OPENROUTER_API_KEY")
-OPENROUTER_REQUEST_TIMEOUT = 180.0
+OPENROUTER_REQUEST_TIMEOUT = float(os.environ.get("OPENROUTER_REQUEST_TIMEOUT", "180.0"))
 
 # Evidence score rubric (spec §7): model keyword -> score 1-5.
 EVIDENCE_RUBRIC = {

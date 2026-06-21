@@ -163,6 +163,9 @@ async def extract_claims_async(abstract: str) -> list[Claim]:
     client = _get_client()
     max_retries = 3
     for attempt in range(max_retries):
+        # First attempt: 60s (or get_timeout())
+        # Second attempt: 90s (or get_timeout() + 30.0)
+        current_timeout = get_timeout() + (30.0 * attempt)
         try:
             resp = await asyncio.wait_for(
                 client.aio.models.generate_content(
@@ -173,7 +176,7 @@ async def extract_claims_async(abstract: str) -> list[Claim]:
                         "response_schema": list[Claim],
                     },
                 ),
-                timeout=get_timeout(),
+                timeout=current_timeout,
             )
             parsed = resp.parsed
             claims: list[Claim] = parsed if isinstance(parsed, list) else []
@@ -193,15 +196,17 @@ async def extract_claims_async(abstract: str) -> list[Claim]:
                 kept.append(c)
             return kept
         except (asyncio.TimeoutError, TimeoutError):
-            if attempt < max_retries - 1:
+            if attempt < 1:  # Cap at 2 attempts for TimeoutError
                 sleep_time = (2 ** attempt) + 1
                 logger.warning(
-                    "Request exceeded %.0fs timeout. Retrying in %ds...",
-                    get_timeout(),
+                    "Request exceeded %.0fs timeout. Retrying in %ds with %.0fs timeout...",
+                    current_timeout,
                     sleep_time,
+                    current_timeout + 30.0,
                 )
                 await asyncio.sleep(sleep_time)
                 continue
+            logger.error("Request consistently timed out after 2 attempts.")
             raise
         except APIError as e:
             is_transient = e.code in (429, 500, 503, 504) or "limit" in str(e).lower() or "exhausted" in str(e).lower()
