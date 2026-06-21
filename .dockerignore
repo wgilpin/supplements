@@ -1,0 +1,17 @@
+# Keep the build context small. Data is provided via the supps-data volume,
+# not baked into the image.
+.git
+.venv
+data/
+backups/
+.env
+tests/
+eval/
+docs/
+scripts/
+.mypy_cache/
+.pytest_cache/
+.ruff_cache/
+__pycache__/
+*.py[oc]
+.DS_Store
