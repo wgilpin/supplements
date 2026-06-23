@@ -23,6 +23,14 @@ RUN uv sync --frozen --no-dev
 # it is provided at runtime by the `supps-data` named volume (see docker-compose.yml).
 COPY skg/ skg/
 
+# Bake in provider config so the image is self-contained on hosts that don't
+# pass env. config.py calls load_dotenv(), which reads /app/.env at startup.
+# The build context must contain .env (it is gitignored, so each host needs its
+# own copy present at build time). NOTE: this places secrets in the image layer;
+# only acceptable because the image is built locally per host and never pushed
+# to a shared registry.
+COPY .env ./
+
 # Expose the FastAPI port
 EXPOSE 8000
 

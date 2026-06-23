@@ -4,7 +4,6 @@
 .venv
 data/
 backups/
-.env
 tests/
 eval/
 docs/

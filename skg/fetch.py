@@ -23,10 +23,19 @@ def _params(extra: dict) -> dict:
 
 
 def esearch(term: str, retmax: int) -> list[str]:
-    """Most-recent PMIDs for a search term."""
+    """Most-relevant PMIDs for a search term.
+
+    Restrict the term to the title/abstract and rank by PubMed Best Match
+    (``sort=relevance``) rather than recency. A bare ``term=creatine`` sorted by
+    date is dominated by papers that only mention the word incidentally — e.g.
+    "creatine kinase" / "creatinine" as lab values in unrelated cardiology or
+    nephrology studies — so few of the resulting claims are about the supplement
+    itself. Relevance ranking surfaces papers actually studying the compound.
+    """
+    query = f"{term}[Title/Abstract]"
     r = httpx.get(
         f"{config.PUBMED_BASE}/esearch.fcgi",
-        params=_params({"db": "pubmed", "term": term, "sort": "date",
+        params=_params({"db": "pubmed", "term": query, "sort": "relevance",
                         "retmax": retmax, "retmode": "json"}),
         timeout=30,
     )

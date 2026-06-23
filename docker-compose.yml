@@ -3,8 +3,13 @@ services:
     build: .
     container_name: supps
     restart: unless-stopped
-    environment:
-      - OPENROUTER_API_KEY=${OPENROUTER_API_KEY}
+    # Inject all LLM/provider config (GEMINI_API_KEY, ACTIVE_PROVIDER,
+    # GEMINI_MODEL, OPENROUTER_API_KEY, NCBI_API_KEY) from .env. The app's
+    # load_dotenv() can't find .env inside the container (it is not baked into
+    # the image), so compose must forward these or live ingestion fails with
+    # "GEMINI_API_KEY environment variable is not set".
+    env_file:
+      - .env
     volumes:
       # Persistent app data (kuzu DB, abstracts, claims, json). Survives
       # rebuilds/recreations. Seeded once during the initial deploy — see DEPLOY.md.
