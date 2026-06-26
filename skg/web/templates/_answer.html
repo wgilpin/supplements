@@ -123,25 +123,7 @@
     {% endfor %}
 
   {% else %}
-    {% for r in results %}
-    <div class="card claim">
-      <div class="card-head">
-        <span class="compound">{{ r.compounds | join(', ') }}</span>
-        <span class="dir dir-{{ r.direction }}">{{ r.direction }}</span>
-        {% if r.target %}<span class="ent target">{{ r.target }}</span>{% endif %}
-        {% if r.effect %}<span class="ent effect">{{ r.effect }}</span>{% endif %}
-        <span class="ev ev-{{ r.evidence_score }}">{{ ev_labels[r.evidence_score] }}</span>
-      </div>
-      <blockquote>{{ r.source_quote }}</blockquote>
-      <div class="meta">
-        <span class="model">{{ r.model }}</span>
-        {% if r.dose_text %}<span class="dose">dose: {{ r.dose_text }}</span>{% endif %}
-        {% if r.cohort_text %}<span class="cohort">cohort: {{ r.cohort_text }}</span>{% endif %}
-        <a class="pmid" href="https://pubmed.ncbi.nlm.nih.gov/{{ r.source_pmid }}/"
-           target="_blank" rel="noopener" title="{{ r.source_pmid | pmid_title }} (PMID {{ r.source_pmid }})">{{ r.source_pmid | pmid_display }}</a>
-      </div>
-    </div>
-    {% endfor %}
+    {% include "_claim_matrices.html" %}
   {% endif %}
   </details>
 {% endif %}

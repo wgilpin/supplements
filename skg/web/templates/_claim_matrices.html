@@ -1,0 +1,9 @@
+{# One titled matrix per supplement. Expects `matrices` (list[CompoundMatrix])
+   and `ev_labels`. Each table is self-contained (see _claim_matrix.html). #}
+{% for cm in matrices %}
+<div class="compound-matrix">
+  <h3 class="compound-head">{{ cm.compound }}</h3>
+  {% set matrix = cm.matrix %}
+  {% include "_claim_matrix.html" %}
+</div>
+{% endfor %}

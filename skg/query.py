@@ -10,6 +10,7 @@ rows — DataFrames never leak out of this module.
 from __future__ import annotations
 
 import logging
+from collections.abc import Collection
 from typing import Literal
 
 import kuzu
@@ -144,6 +145,97 @@ def group_claims(rows: list[ClaimRow]) -> list[ClaimGroup]:
         elif r.compound not in existing.compounds:
             existing.compounds.append(r.compound)
     return list(groups.values())
+
+
+# --- matrix view (direction × evidence grid, spec §9 UX) ----------------------
+
+# Column order for the matrix; only directions actually present are rendered.
+_DIRECTION_ORDER: tuple[Direction, ...] = (
+    "increases", "decreases", "modulates", "mixed", "none",
+)
+
+
+class MatrixEntry(BaseModel):
+    """One clickable cell entry: a target/effect label and the grouped claims
+    behind it (several PMIDs may share label + direction + evidence)."""
+
+    label: str
+    claims: list[ClaimGroup]
+
+
+class MatrixRow(BaseModel):
+    """One evidence tier; ``cells`` maps each present direction to its entries."""
+
+    evidence_score: int
+    cells: dict[Direction, list[MatrixEntry]]
+
+
+class ClaimMatrix(BaseModel):
+    directions: list[Direction]   # present directions, canonical order (columns)
+    rows: list[MatrixRow]         # evidence_score DESC (rows)
+
+
+class CompoundMatrix(BaseModel):
+    """A per-supplement matrix: results that span several compounds render as one
+    titled table each, so the supplement in question is never ambiguous."""
+
+    compound: str
+    matrix: ClaimMatrix
+
+
+def build_matrix(
+    groups: list[ClaimGroup], exclude: Collection[str] = (),
+) -> ClaimMatrix:
+    """Bucket grouped claims into a (direction × evidence) grid. Each cell holds
+    one entry per distinct target/effect label, carrying all claims for it.
+
+    ``exclude`` drops entries whose label matches a queried entity (normalised),
+    so a compound never appears as its own target/effect (self-reference noise).
+    """
+    excluded = {normalise_str(e) for e in exclude}
+    buckets: dict[int, dict[Direction, dict[str, list[ClaimGroup]]]] = {}
+    present: set[Direction] = set()
+    for g in groups:
+        label = g.target or g.effect or "—"
+        if normalise_str(label) in excluded:
+            continue
+        present.add(g.direction)
+        by_dir = buckets.setdefault(g.evidence_score, {})
+        by_label = by_dir.setdefault(g.direction, {})
+        by_label.setdefault(label, []).append(g)
+
+    directions = [d for d in _DIRECTION_ORDER if d in present]
+    rows: list[MatrixRow] = []
+    for ev in sorted(buckets, reverse=True):
+        cells = {
+            d: [MatrixEntry(label=lbl, claims=cl)
+                for lbl, cl in sorted(buckets[ev].get(d, {}).items())]
+            for d in directions
+        }
+        rows.append(MatrixRow(evidence_score=ev, cells=cells))
+    return ClaimMatrix(directions=directions, rows=rows)
+
+
+def build_matrices(
+    groups: list[ClaimGroup], exclude: Collection[str] = (),
+) -> list[CompoundMatrix]:
+    """Split grouped claims by compound and build one matrix per supplement,
+    ordered by claim count (most-evidenced first). A claim shared by several
+    compounds appears under each. Compounds left empty by ``exclude`` are
+    dropped. Use this for entity-centric queries (effect/target/…) where the
+    results span multiple supplements."""
+    by_compound: dict[str, list[ClaimGroup]] = {}
+    for g in groups:
+        for c in g.compounds:
+            single = g.model_copy(update={"compounds": [c]})
+            by_compound.setdefault(c, []).append(single)
+
+    matrices: list[CompoundMatrix] = []
+    for compound in sorted(by_compound, key=lambda c: (-len(by_compound[c]), c)):
+        matrix = build_matrix(by_compound[compound], exclude=exclude)
+        if matrix.rows:
+            matrices.append(CompoundMatrix(compound=compound, matrix=matrix))
+    return matrices
 
 
 _CLAIM_PROJECTION = """

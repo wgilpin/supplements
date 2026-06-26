@@ -108,6 +108,19 @@ templates.env.filters["pmid_display"] = get_pmid_display
 templates.env.filters["pmid_title"] = get_pmid_title
 
 
+def _static_version() -> str:
+    """Cache-busting token for /static assets — newest mtime among them, so a
+    changed CSS/JS file invalidates the browser cache on next page load."""
+    static_dir = _BASE / "static"
+    try:
+        return str(int(max(f.stat().st_mtime for f in static_dir.glob("*"))))
+    except ValueError:
+        return "0"
+
+
+templates.env.globals["static_v"] = _static_version()
+
+
 def get_db_conn(request: Request) -> Generator[kuzu.Connection, None, None]:
     # Check if a test database has been injected via app.state.db, use it.
     test_db = getattr(request.app.state, "db", None)
@@ -184,8 +197,20 @@ def ask(
 
     # Claim results merge same-evidence rows (differ only by compound) for display.
     display: Sequence[BaseModel]
+    matrices: list[query.CompoundMatrix] = []
     if req.query in ("compound", "effect", "target", "search", "intersection"):
-        display = query.group_claims(cast("list[query.ClaimRow]", results))
+        grouped = query.group_claims(cast("list[query.ClaimRow]", results))
+        # Only drop self-referential labels when the queried entity is itself a
+        # compound (compound/intersection). For effect/target queries the entity
+        # IS the label axis, so excluding it would delete the answer.
+        if req.query == "compound" and req.entity:
+            exclude = [req.entity]
+        elif req.query == "intersection":
+            exclude = req.entities
+        else:
+            exclude = []
+        matrices = query.build_matrices(grouped, exclude=exclude)
+        display = grouped
     else:
         display = results
 
@@ -200,6 +225,7 @@ def ask(
             "q": q,
             "req": req,
             "results": display,
+            "matrices": matrices,
             "summary": summary,
             "candidate_ingestion": candidate_ingestion,
             "loose_match_resolved": loose_match_resolved,
@@ -248,6 +274,7 @@ async def ingest(
             context={
                 "req": query.QueryRequest(query="compound", entity=resolved),
                 "results": display,
+                "matrices": query.build_matrices(display, exclude=[resolved]),
                 "summary": summary
             }
         )

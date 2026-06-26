@@ -1,0 +1,47 @@
+{# Direction × evidence matrix. Expects `matrix` (query.ClaimMatrix) + `ev_labels`.
+   Clicking a cell entry expands its full claim card(s) inline as a new row
+   directly below (see static/app.js). #}
+{% from "_claim_card.html" import claim_card %}
+<div class="matrix-wrap">
+<table class="claim-matrix">
+  <thead>
+    <tr>
+      <th class="ev-col"></th>
+      {% for d in matrix.directions %}
+      <th><span class="dir dir-{{ d }}">{{ d }}</span></th>
+      {% endfor %}
+    </tr>
+  </thead>
+  <tbody>
+    {% for row in matrix.rows %}
+    <tr class="ev-row">
+      <th class="ev-col"><span class="ev ev-{{ row.evidence_score }}">{{ ev_labels[row.evidence_score] }}</span></th>
+      {% for d in matrix.directions %}
+      {% set entries = row.cells[d] %}
+      <td>
+        {% if entries %}
+        <ul class="cell-list">
+          {% for e in entries %}
+          <li><button type="button" class="cell-entry" aria-expanded="false"
+                      data-detail-id="m-{{ row.evidence_score }}-{{ d }}-{{ loop.index0 }}"><span class="lbl">{{ e.label }}</span>{% if e.claims | length > 1 %}<span class="cnt" title="{{ e.claims | length }} claims">{{ e.claims | length }}</span>{% endif %}</button></li>
+          {% endfor %}
+        </ul>
+        {% else %}<span class="cell-empty">—</span>{% endif %}
+      </td>
+      {% endfor %}
+    </tr>
+    {% endfor %}
+  </tbody>
+</table>
+<div class="claim-details-store" hidden>
+  {% for row in matrix.rows %}
+    {% for d in matrix.directions %}
+      {% for e in row.cells[d] %}
+      <div class="claim-detail" data-detail-id="m-{{ row.evidence_score }}-{{ d }}-{{ loop.index0 }}">
+        {% for c in e.claims %}{{ claim_card(c, ev_labels) }}{% endfor %}
+      </div>
+      {% endfor %}
+    {% endfor %}
+  {% endfor %}
+</div>
+</div>

@@ -262,6 +262,111 @@ def test_group_claims_keeps_distinct_evidence_separate():
     assert set(first.compounds) == {"taurine", "glycine"}
 
 
+# --- build_matrix (direction × evidence grid for display) ---------------------
+
+def _group(label, direction, evidence, *, pmid="p1", kind="effect"):
+    kw = {"target": None, "effect": None}
+    kw[kind] = label
+    return query.ClaimGroup(
+        compounds=["nac"], direction=direction, evidence_score=evidence,
+        model="human RCT", dose_text="", cohort_text="", source_pmid=pmid,
+        source_quote="q", **kw,
+    )
+
+
+def test_build_matrix_buckets_by_direction_and_evidence():
+    groups = [
+        _group("biofilm formation", "decreases", 5),
+        _group("glutathione level", "increases", 5),
+        _group("oxidative stress", "decreases", 4),
+    ]
+    m = query.build_matrix(groups)
+    # Only directions actually present, in canonical order.
+    assert m.directions == ["increases", "decreases"]
+    # Rows are descending by evidence score.
+    assert [r.evidence_score for r in m.rows] == [5, 4]
+    ev5 = m.rows[0]
+    assert [e.label for e in ev5.cells["decreases"]] == ["biofilm formation"]
+    assert [e.label for e in ev5.cells["increases"]] == ["glutathione level"]
+    assert ev5.cells.get("increases") is not None
+
+
+def test_build_matrix_groups_same_label_direction_evidence():
+    # Two distinct claims (different PMIDs) on the same target/direction/evidence
+    # collapse to ONE clickable entry holding both.
+    groups = [
+        _group("oxidative stress", "decreases", 4, pmid="p1"),
+        _group("oxidative stress", "decreases", 4, pmid="p2"),
+    ]
+    m = query.build_matrix(groups)
+    entries = m.rows[0].cells["decreases"]
+    assert len(entries) == 1
+    assert entries[0].label == "oxidative stress"
+    assert len(entries[0].claims) == 2
+
+
+def test_build_matrix_label_prefers_target_then_effect():
+    groups = [_group("white blood cell count", "decreases", 5, kind="target")]
+    m = query.build_matrix(groups)
+    assert m.rows[0].cells["decreases"][0].label == "white blood cell count"
+
+
+def test_build_matrix_excludes_self_referential_labels():
+    # A compound listed as its own target/effect ("creatine increases creatine")
+    # is noise when you queried that compound — drop it.
+    groups = [
+        _group("creatine", "increases", 5, kind="effect"),
+        _group("muscle strength", "increases", 5, kind="effect"),
+    ]
+    m = query.build_matrix(groups, exclude=["Creatine"])  # case-insensitive
+    labels = [e.label for e in m.rows[0].cells["increases"]]
+    assert labels == ["muscle strength"]
+
+
+def test_build_matrix_excludes_dropping_empty_direction_column():
+    # If excluding the self-reference empties a direction entirely, that column
+    # should not appear.
+    groups = [
+        _group("creatine", "modulates", 4, kind="effect"),
+        _group("muscle strength", "increases", 4, kind="effect"),
+    ]
+    m = query.build_matrix(groups, exclude=["creatine"])
+    assert m.directions == ["increases"]
+
+
+def test_build_matrices_one_table_per_compound():
+    # A disease query returns claims across several supplements; each becomes its
+    # own titled matrix, ordered by claim count (most first).
+    groups = [
+        query.ClaimGroup(compounds=["creatine"], target=None, effect="depression",
+                         direction="decreases", evidence_score=4, model="human study",
+                         dose_text="", cohort_text="", source_pmid="p1", source_quote="q"),
+        query.ClaimGroup(compounds=["creatine"], target=None, effect="fatigue",
+                         direction="decreases", evidence_score=4, model="human study",
+                         dose_text="", cohort_text="", source_pmid="p2", source_quote="q"),
+        query.ClaimGroup(compounds=["magnesium"], target=None, effect="depression",
+                         direction="decreases", evidence_score=4, model="human study",
+                         dose_text="", cohort_text="", source_pmid="p3", source_quote="q"),
+    ]
+    mats = query.build_matrices(groups)
+    assert [m.compound for m in mats] == ["creatine", "magnesium"]  # 2 claims vs 1
+    creatine = mats[0].matrix
+    assert {e.label for e in creatine.rows[0].cells["decreases"]} == {"depression", "fatigue"}
+
+
+def test_build_matrices_shared_claim_appears_under_each_compound():
+    groups = [
+        query.ClaimGroup(compounds=["taurine", "glycine"], target="gaba a receptor",
+                         effect=None, direction="modulates", evidence_score=3,
+                         model="animal model", dose_text="", cohort_text="",
+                         source_pmid="p1", source_quote="q"),
+    ]
+    mats = query.build_matrices(groups)
+    assert {m.compound for m in mats} == {"taurine", "glycine"}
+    for m in mats:
+        assert m.matrix.rows[0].cells["modulates"][0].label == "gaba a receptor"
+
+
 # --- dispatch ------------------------------------------------------------------
 
 def test_dispatch_compound(conn):
