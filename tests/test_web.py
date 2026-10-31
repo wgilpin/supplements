@@ -207,4 +207,54 @@ def test_canonicalise_endpoint(tmp_path):
             app.state.db = old_db
 
 
+def test_html_response_escapes_xss(tmp_path):
+    from unittest.mock import patch, AsyncMock
+    from fastapi.testclient import TestClient
+    import kuzu
+    from skg import graph
+    from skg.web.app import app
+
+    db_path = tmp_path / "test_kg.kuzu"
+    db = kuzu.Database(str(db_path))
+    conn = kuzu.Connection(db)
+    graph.init_schema(conn)
+
+    old_db = getattr(app.state, "db", None)
+    app.state.db = db
+
+    try:
+        client = TestClient(app)
+        xss_payload = "<script>alert(1)</script>"
+
+        # 1. /ingest error branch escapes both supplement and exception message
+        with patch("skg.web.app.ingest_supplement_async", new_callable=AsyncMock) as mock_ingest:
+            mock_ingest.side_effect = RuntimeError("<img src=x onerror=alert(2)>")
+            resp = client.post("/ingest", data={"supplement": xss_payload})
+            assert resp.status_code == 200
+            assert "<script>" not in resp.text
+            assert "<img" not in resp.text
+            assert "&lt;script&gt;alert(1)&lt;/script&gt;" in resp.text
+            assert "&lt;img src=x onerror=alert(2)&gt;" in resp.text
+
+        # 2. /ingest unresolved warning branch escapes supplement
+        with patch("skg.web.app.ingest_supplement_async", new_callable=AsyncMock), \
+             patch("skg.web.app.propose", return_value={}), \
+             patch("skg.web.app.apply_map", return_value={}):
+            resp = client.post("/ingest", data={"supplement": xss_payload})
+            assert resp.status_code == 200
+            assert "<script>" not in resp.text
+            assert "&lt;script&gt;alert(1)&lt;/script&gt;" in resp.text
+
+        # 3. /canonicalise error branch escapes exception message
+        with patch("skg.web.app.propose", side_effect=RuntimeError(xss_payload)):
+            resp = client.post("/canonicalise")
+            assert resp.status_code == 200
+            assert "<script>" not in resp.text
+            assert "&lt;script&gt;alert(1)&lt;/script&gt;" in resp.text
+    finally:
+        if old_db is not None:
+            app.state.db = old_db
+
+
+
 

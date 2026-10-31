@@ -9,6 +9,7 @@ Database is opened at startup and a fresh Connection is made per request
 
 from __future__ import annotations
 
+import html
 import logging
 import gc
 from collections.abc import AsyncIterator, Generator, Sequence
@@ -259,7 +260,7 @@ async def ingest(
         except Exception as e:
             logger.exception("Failed to ingest %r", supplement)
             return HTMLResponse(
-                content=f"<div class='alert alert-danger'>Error ingesting '<strong>{supplement}</strong>': {e}</div>"
+                content=f"<div class='alert alert-danger'>Error ingesting '<strong>{html.escape(supplement)}</strong>': {html.escape(str(e))}</div>"
             )
 
     if resolved:
@@ -280,7 +281,7 @@ async def ingest(
         )
     else:
         return HTMLResponse(
-            content=f"<div class='alert alert-warning'>Ingestion completed, but no claims could be extracted for '<strong>{supplement}</strong>' (no abstracts found or no claims matched the criteria).</div>"
+            content=f"<div class='alert alert-warning'>Ingestion completed, but no claims could be extracted for '<strong>{html.escape(supplement)}</strong>' (no abstracts found or no claims matched the criteria).</div>"
         )
 
 
@@ -296,10 +297,10 @@ async def canonicalise_endpoint(
         logger.info("Manual canonicalisation complete: %s", merged)
         summary = ", ".join(f"{k}: {v} merged" for k, v in merged.items())
         return HTMLResponse(
-            content=f"<div class='alert alert-success'>Graph deduplicated successfully ({summary})</div>"
+            content=f"<div class='alert alert-success'>Graph deduplicated successfully ({html.escape(summary)})</div>"
         )
     except Exception as e:
         logger.exception("Manual canonicalisation failed")
         return HTMLResponse(
-            content=f"<div class='alert alert-danger'>Deduplication failed: {e}</div>"
+            content=f"<div class='alert alert-danger'>Deduplication failed: {html.escape(str(e))}</div>"
         )
