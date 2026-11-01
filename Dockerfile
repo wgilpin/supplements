@@ -29,7 +29,6 @@ COPY skg/ skg/
 # own copy present at build time). NOTE: this places secrets in the image layer;
 # only acceptable because the image is built locally per host and never pushed
 # to a shared registry.
-COPY .env ./
 
 # Expose the FastAPI port
 EXPOSE 8000
